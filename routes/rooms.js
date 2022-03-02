@@ -11,7 +11,8 @@ router.get('/', function (req, res, next) {
 });
 router.post('/100ms-events', async (req, res) => {
     try {
-        console.log(req.body);
+        const event = req.body;
+        console.log(event.type);
         res.send("success")
     }
     catch (err) {
@@ -48,10 +49,10 @@ router.post('/createRoom', authenticateToken, checkRole([0]), async (req, res) =
 async function createRoom100Ms(name, description) {
     const url = `https://prod-in2.100ms.live/api/v2/rooms`
 
-    const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'JWT fefege...'
-    }
+    // const headers = {
+    //     'Content-Type': 'application/json',
+    //     'Authorization': 'JWT fefege...'
+    // }
     const response = await axios.post(url, { description: description }, { headers: { Authorization: `Bearer ${token}` } })
     // console.log(response);
     if (response.status == 200) {

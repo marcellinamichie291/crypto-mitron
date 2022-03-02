@@ -8,7 +8,7 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var transactionRoute = require('./routes/transactions');
 const roomRoute = require('./routes/rooms');
-require('./config');
+// require('./config');
 var app = express();
 
 // view engine setup
