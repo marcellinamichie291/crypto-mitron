@@ -12,6 +12,7 @@ router.get('/', function (req, res, next) {
 router.post('/100ms-events', async (req, res) => {
     try {
         console.log(req);
+        res.send("success")
     }
     catch (err) {
         return res.status(500).json({ IsSuccess: false, Data: [], Message: err.message || "Having issue is server" })
