@@ -10,8 +10,9 @@ const roomSchema = mongoose.Schema({
     createdTime: [
         String
     ],
-    roomId:
-        String
+    roomName: String,
+    //UPCOMING, ONGOING, FINISHED
+    status: { type: Number, default: 0 }
 });
 
 module.exports = mongoose.model("rooms", roomSchema);
