@@ -2,18 +2,59 @@ var express = require('express');
 const { default: mongoose } = require('mongoose');
 var router = express.Router();
 const transactionSchema = require('../models/transactionModel');
+const { authenticateToken } = require('../middleware/auth');
+const binance = require('../services/binance');
+const app_access_key = '621db3d4692b6d05230a0870';
+const app_secret = '_01RbLt1WIU0SP4BwR3pgIxFZI_1l857wCZqksdMdYwY_sTbhZdvsXpI7Pc4qUZrVCpeB0Eano7iRm00P_CMddtwMT97tdHIOyAq2rQf9yb0LzW767zq1lPEcVzdafdEiFgQOZtH4o98kB8vXYgTdiCq5nIpz4QZfpz18kqQTYM=';
 
 /* GET home page. */
+
+let currency = [
+  {
+    token: "BTC",
+    price: 3267360.43
+  },
+  {
+    token: "ETH",
+    price: 199527.05
+  }
+]
 router.get('/', function (req, res, next) {
   res.render('index', { title: 'Express' });
 });
 
-router.post('/create', async function (req, res) {
+var jwt = require('jsonwebtoken');
+var uuid4 = require('uuid4');
+
+
+router.post('/token-generate', async (req, res) => {
+  jwt.sign(
+    {
+      access_key: app_access_key,
+      type: 'management',
+      version: 2,
+      iat: Math.floor(Date.now() / 1000),
+      nbf: Math.floor(Date.now() / 1000)
+    },
+    app_secret,
+    {
+      algorithm: 'HS256',
+      expiresIn: '24h',
+      jwtid: uuid4()
+    },
+    function (err, token) {
+      console.log(token);
+    }
+  );
+
+})
+
+router.post('/create', authenticateToken, async function (req, res) {
   try {
 
-    const { userId, debitCurrency, creditCurrency, creditAmount, debitAmount, transactionDate, status } = req.body;
+    const { userId, debitToken, creditToken, creditAmount, debitAmount, transactionDate, status } = req.body;
 
-    let createTransaction = new transactionSchema({ userId: userId, debitCurrency: debitCurrency, debitAmount: debitAmount, creditCurrency: creditCurrency, creditAmount: creditAmount, transactionDate: transactionDate, status: status });
+    let createTransaction = new transactionSchema({ userId: userId, debitToken: debitToken, debitAmount: debitAmount, creditToken: creditToken, creditAmount: creditAmount, transactionDate: transactionDate, status: status });
 
     await createTransaction.save();
     return res.status(200).json({ IsSuccess: true, Data: [createTransaction], Messsage: "Transaction stored successfully" });
@@ -22,7 +63,7 @@ router.post('/create', async function (req, res) {
   }
 })
 
-router.get('/get/:userId', async function (req, res) {
+router.get('/get/:userId', authenticateToken, async function (req, res) {
   try {
 
     const userId = req.params.userId;
@@ -45,7 +86,7 @@ router.get('/get/:userId', async function (req, res) {
         userId: userId,
         transactions: getAllTransactions
       }
-      // let getResults = toTransRes(userId, getAllTransactions);
+      // let getResultsFor = toTransRes(userId, getAllTransactions);
       return res.status(200).json({ IsSuccess: true, Data: getResults, Messsage: "Transaction stored successfully" });
     }
     return res.status(404).json({ IsSuccess: true, Data: [], Messsage: "No any transactions found" });
@@ -75,6 +116,41 @@ router.get('/wallet/:userId', async function (req, res) {
     return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
   }
 });
+
+router.post('/buyFromInr', async function (req, res) {
+  try {
+
+    const { amount, creditToken } = req.body;
+
+    const quantity = calculateQuantity(amount, creditToken);
+
+    if (quantity > 0) {
+      const responseIs = await binance.marketBuy("USDBTC", quantity.toFixed(10), (error, response) => {
+        console.info("Market Buy response", response);
+        console.info("order id: " + response.orderId);
+        console.log(error)
+        // Now you can limit sell with a stop loss, etc.
+      });
+      return res.status(200).json({ IsSuccess: true, Data: quantity.toFixed(10), result: responseIs, Messsage: "Transaction stored successfully" });
+    }
+    return res.status(200).json({ IsSuccess: true, Data: [], Messsage: "Transaction stored successfully" });
+  } catch (error) {
+    return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+  }
+})
+
+router.post('/convertCurrency', async function (req, res) {
+  try {
+    const { price, fromToken, toToken } = req.body;
+
+    const quantity = convertCurrency(fromToken, price, toToken);
+
+    return res.status(200).json({ IsSuccess: true, Data: [], Messsage: "Transaction stored successfully" });
+  } catch (error) {
+    return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+  }
+})
+
 module.exports = router;
 
 function toTransRes(userId, dbResult) {
@@ -95,6 +171,23 @@ function toTransRes(userId, dbResult) {
   return transRes;
 }
 
+//This responds a POST request for the homepage
+// app.post('/users/insert', function (req, res) {
+//   console.log("Got a POST1 request for the homepage" + req.body.id);
+//   var name = req.body.name;
+//   var email = req.body.email;
+//   var phone = req.body.phone;
+//   var age = req.body.age;
+
+//   var user = { phone: phone, name: name, email: email, age: age };
+
+//   const token = jwt.sign(
+//     { name: name, email },
+//     "djdnkdnknknkn",
+//     {
+//       expiresIn: "365d",
+//     }
+//   );
 // app.get('/transactions/get/:userId', function(req, res) {
 //   var userId = req.params.userId;
 //   var query = { userId: userId};
@@ -106,7 +199,20 @@ function toTransRes(userId, dbResult) {
 //   );
 // });
 
+function calculateQuantity(price, toCurrency) {
+  let checkCurrency = currency.find((curr) => { return curr.token == toCurrency });
+  // console.log(checkCurrency);
+  if (checkCurrency != undefined) {
+    let quantity = price / checkCurrency.price;
+    // console.log(quantity)
+    return quantity;
+  }
+  return 0;
+}
+function convertCurrency(fromCurrency, price, toCurrency) {
+  //check for available balance
 
+}
 function toWalletRes(userId, dbResult) {
   var tokenMap = new Map();
   var transRes = {};
@@ -115,8 +221,8 @@ function toWalletRes(userId, dbResult) {
   for (var i = 0; i < dbResult.length; i++) {
     console.log(dbResult);
     var transaction = {};
-    var debitToken = dbResult[i].debitCurrency;
-    var creditToken = dbResult[i].creditCurrency;
+    var debitToken = dbResult[i].debitToken;
+    var creditToken = dbResult[i].creditToken;
     var debitAmount = dbResult[i].debitAmount;
     var creditAmount = dbResult[i].creditAmount;
 
@@ -128,7 +234,7 @@ function toWalletRes(userId, dbResult) {
   }
   var tokens = Object.fromEntries(tokenMap);
   transRes.tokens = tokens;
-  console.log(transRes);
+  // console.log(transRes);
   return transRes;
 }
 

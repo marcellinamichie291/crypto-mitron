@@ -4,9 +4,9 @@ const registrationTypes = mongoose.Schema({
         type: mongoose.Types.ObjectId,
         ref: "users"
     },
-    debitCurrency: String,
+    debitToken: String,
     debitAmount: Number,
-    creditCurrency: String,
+    creditToken: String,
     creditAmount: Number,
     transactionDate: String,
     //0-pending
