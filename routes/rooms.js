@@ -11,7 +11,7 @@ router.get('/', function (req, res, next) {
 });
 router.post('/100ms-events', async (req, res) => {
     try {
-        console.log(req);
+        console.log(req.body);
         res.send("success")
     }
     catch (err) {
