@@ -12,7 +12,7 @@ router.get('/', function (req, res, next) {
 router.post('/100ms-events', async (req, res) => {
     try {
         const event = req.body;
-        console.log(event.type);
+        console.log(event);
         res.send("success")
     }
     catch (err) {
