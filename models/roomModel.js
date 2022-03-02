@@ -11,6 +11,10 @@ const roomSchema = mongoose.Schema({
         String
     ],
     roomName: String,
+    guest: {
+        type: Number,
+        default: 0
+    },
     //UPCOMING, ONGOING, FINISHED
     status: { type: Number, default: 0 }
 });

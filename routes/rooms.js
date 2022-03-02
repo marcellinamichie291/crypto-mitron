@@ -13,6 +13,7 @@ router.get('/', function (req, res, next) {
 router.post('/100ms-events', async (req, res) => {
     try {
         const event = req.body;
+        console.log(event)
         if (event.type == "peer.join.success") {
             const getRooms = await roomSchema.aggregate([
                 {
@@ -26,7 +27,7 @@ router.post('/100ms-events', async (req, res) => {
             ]);
 
             if (getRooms.length > 0) {
-                let updateStatus = await roomSchema.findOneAndUpdate(event.data.room_id, { status: 1 }, { new: true });
+                let updateStatus = await roomSchema.findOneAndUpdate(event.data.room_id, { status: 1, guest: (getRooms[0].guest) + 1 }, { new: true });
                 console.log(updateStatus);
             }
         }
