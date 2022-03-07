@@ -5,15 +5,21 @@ const roomSchema = require('../models/roomModel');
 const getCurrentDateTime = require('../utils/timeFunctions');
 const { authenticateToken, checkRole } = require('../middleware/auth');
 const { default: mongoose } = require('mongoose');
-let token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3Nfa2V5IjoiNjIxZGIzZDQ2OTJiNmQwNTIzMGEwODcwIiwidHlwZSI6Im1hbmFnZW1lbnQiLCJ2ZXJzaW9uIjoyLCJpYXQiOjE2NDYyMTgzNjMsIm5iZiI6MTY0NjIxODM2MywiZXhwIjoxNjQ2MzA0NzYzLCJqdGkiOiI1ODJhMDUxMy03ZWQ3LTRlN2YtYThlNi1mMDk1NDc5ODg5ZmYifQ.34bIhJq0E04ajZ_WNu9ydH-e5k_GCDusIih2BQ3ZUIQ"
+const pusher = require('../services/pusher');
+MARKET_CAP_SYMBOLS = "btc,ae";
+let token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3Nfa2V5IjoiNjIxZGIzZDQ2OTJiNmQwNTIzMGEwODcwIiwidHlwZSI6Im1hbmFnZW1lbnQiLCJ2ZXJzaW9uIjoyLCJpYXQiOjE2NDY2MjkxMTEsIm5iZiI6MTY0NjYyOTExMSwiZXhwIjoxNjQ5MjIxMTExLCJqdGkiOiJjNjhkMzg5NC01NjA3LTQ5MzEtYjVhNi03ZDUyMzY4ZDJmYmEifQ.eY2Zrv6N74GF55zkAgvmqjPgtuM40UAmq8ZmaB2T4DQ"
+require('dotenv').config
+
 /* GET home page. */
 router.get('/', function (req, res, next) {
     res.render('index', { title: 'Express' });
 });
+
+
 router.post('/100ms-events', async (req, res) => {
     try {
         const event = req.body;
-        console.log(event)
+        // console.log(event)
         if (event.type == "peer.join.success") {
             const getRooms = await roomSchema.aggregate([
                 {
@@ -27,8 +33,8 @@ router.post('/100ms-events', async (req, res) => {
             ]);
 
             if (getRooms.length > 0) {
-                let updateStatus = await roomSchema.findOneAndUpdate(event.data.room_id, { status: 1, guest: (getRooms[0].guest) + 1 }, { new: true });
-                console.log(updateStatus);
+                let updateStatus = await roomSchema.findOneAndUpdate(event.data.room_id, { status: "ONGOING" }, { new: true });
+                // console.log(updateStatus);
             }
         }
         else if (event.type == "peer.leave.success") {
@@ -44,8 +50,8 @@ router.post('/100ms-events', async (req, res) => {
             ]);
 
             if (getRooms.length > 0) {
-                let updateStatus = await roomSchema.findOneAndUpdate(event.data.room_id, { status: 2 }, { new: true });
-                console.log(updateStatus);
+                let updateStatus = await roomSchema.findOneAndUpdate(event.data.room_id, { status: "FINISHED" }, { new: true });
+                // console.log(updateStatus);
             }
         }
         else if (event.type == "room.end.success") {
@@ -61,17 +67,62 @@ router.post('/100ms-events', async (req, res) => {
             ]);
 
             if (getRooms.length > 0) {
-                let updateStatus = await roomSchema.findOneAndUpdate(event.data.room_id, { status: 2 }, { new: true });
-                console.log(updateStatus);
+                let updateStatus = await roomSchema.findOneAndUpdate(event.data.room_id, { status: "FINISHED" }, { new: true });
+                // console.log(updateStatus);
             }
         }
-        res.send("success")
+        // res.send("success")
     }
     catch (err) {
         return res.status(500).json({ IsSuccess: false, Data: [], Message: err.message || "Having issue is server" })
     }
 })
-router.post('/createRoom', authenticateToken, checkRole([0]), async (req, res) => {
+router.post('/trigger-event', async (req, res) => {
+    try {
+        const marketCapResponse = await getCoinMarketCapData();
+        t1 = Date.now();
+        if (marketCapResponse.status == 0) {
+            allSymbol = [];
+            for (const symbol in marketCapResponse.data.data) {
+                allPrice = [];
+                for (const price in marketCapResponse.data.data[symbol].quote) {
+                    let priceIs = {
+                        currency: price,
+                        price: marketCapResponse.data.data[symbol].quote[price].price,
+                        percentage: marketCapResponse.data.data[symbol].quote[price].percent_change_24h
+                    }
+                    allPrice.push(priceIs)
+                }
+                let symbolIs = {
+                    token: marketCapResponse.data.data[symbol].symbol,
+                    tokenName: marketCapResponse.data.data[symbol].name,
+                    price: allPrice
+                }
+
+                allSymbol.push(symbolIs)
+            }
+
+            const response = await pusher.trigger("market_data", "price_data", {
+                symbol: allSymbol,
+            }).then(resp => {
+                // console.log(resp);
+            }).catch(err => {
+                console.log(err);
+                console.log(err.message)
+            });
+            t2 = Date.now();
+            console.log(t2 - t1);
+            res.status(200).json({ IsSuccess: true, data: allSymbol, Message: "Data found" })
+        }
+        else {
+            res.status(200).json({ IsSuccess: true, data: [], Message: "Data Not Found" })
+        }
+    }
+    catch (err) {
+        console.log(err.message);
+    }
+})
+router.post('/createRoom', authenticateToken, checkRole(["Host"]), async (req, res) => {
     try {
         const { name, description } = req.body;
         const response = await createRoom100Ms(name, description);
@@ -98,43 +149,66 @@ router.post('/createRoom', authenticateToken, checkRole([0]), async (req, res) =
         return res.status(500).json({ IsSuccess: false, Data: [], Message: err.message || "Having issue is server" })
     }
 })
-async function getRoomData(userId, roomId) {
+router.post('/getRooms', authenticateToken, checkRole(["Host"]), async (req, res) => {
+    try {
 
+        let getRooms = await roomSchema.aggregate([
+            {
+                $match: {
+                    userId: mongoose.Types.ObjectId(req.user._id)
+                }
+            }
+        ]);
 
-    return JSON.stringify(getRooms);
-}
+        if (getRooms.length == 0) {
+            return res.status(404).json({ IsSuccess: true, Data: [], Messsage: "no any room found" });
+        }
 
-// {
-//     version: '2.0',
-//         id: '4dadeca8-afb8-44a8-a529-9de23f57a9e3',
-//             account_id: '621db3d4692b6d05230a086e',
-//                 app_id: '621db3d4692b6d05230a086f',
-//                     timestamp: '2022-03-02T10:42:43Z',
-//                         type: 'peer.join.success',
-//                             data: {
-//         account_id: '621db3d4692b6d05230a086e',
-//             app_id: '621db3d4692b6d05230a086f',
-//                 joined_at: '2022-03-02T10:42:43.491696322Z',
-//                     peer_id: '46d4a2e7-e251-4526-af6e-cd65a09725d8',
-//                         role: 'host',
-//                             room_id: '621f0933692b6d05230a0edd',
-//                                 room_name: '22f6ad5a-8cf0-4d74-968b-a9e48724c567',
-//                                     session_id: '621f4a237b5f07ce8fe5f2a4',
-//                                         user_data: '',
-//                                             user_id: '621db3d4692b6d05230a086d',
-//                                                 user_name: 'jainik'
+        return res.status(200).json({ IsSuccess: true, Data: getRooms, Messsage: "All Previos Rooms Found" });
+    }
+    catch (err) {
+        return res.status(500).json({ IsSuccess: false, Data: [], Message: err.message || "Having issue is server" })
+    }
+})
+router.post('/getAllRooms', authenticateToken, checkRole(["Host"]), async (req, res) => {
+    try {
 
-//     }
-// }
+        let getRooms = await roomSchema.aggregate([
+            {
+                $match: {
+                }
+            }
+        ]);
+
+        if (getRooms.length == 0) {
+            return res.status(404).json({ IsSuccess: true, Data: [], Messsage: "no any room found" });
+        }
+
+        return res.status(200).json({ IsSuccess: true, Data: getRooms, Messsage: "All Previos Rooms Found" });
+    }
+    catch (err) {
+        return res.status(500).json({ IsSuccess: false, Data: [], Message: err.message || "Having issue is server" })
+    }
+})
+
 async function createRoom100Ms(name, description) {
     const url = `https://prod-in2.100ms.live/api/v2/rooms`
 
-    // const headers = {
-    //     'Content-Type': 'application/json',
-    //     'Authorization': 'JWT fefege...'
-    // }
     const response = await axios.post(url, { description: description }, { headers: { Authorization: `Bearer ${token}` } })
-    // console.log(response);
+
+
+    if (response.status == 200) {
+        return { status: 0, data: response.data };
+    }
+    else {
+        return { status: 1 };;
+    }
+}
+async function getCoinMarketCapData() {
+    const url = `https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=${MARKET_CAP_SYMBOLS}`
+    // console.log(url)
+    const response = await axios.get(url, { headers: { "X-CMC_PRO_API_KEY": process.env.MARKET_CAP_KEY } })
+    // console.log(response)
     if (response.status == 200) {
         return { status: 0, data: response.data };
     }

@@ -9,6 +9,7 @@ var usersRouter = require('./routes/users');
 var transactionRoute = require('./routes/transactions');
 const roomRoute = require('./routes/rooms');
 require('./config');
+// require('./routes/binanceSocket')
 var app = express();
 
 // view engine setup

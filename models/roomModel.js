@@ -16,7 +16,9 @@ const roomSchema = mongoose.Schema({
         default: 0
     },
     //UPCOMING, ONGOING, FINISHED
-    status: { type: Number, default: 0 }
+    status: {
+        type: String, enum: ["UPCOMING", "ONGOING", "FINISHED"], default: "UPCOMING"
+    }
 });
 
 module.exports = mongoose.model("rooms", roomSchema);

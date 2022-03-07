@@ -72,7 +72,7 @@ function authenticateToken(req, res, next) {
     })
 }
 async function generateAccessToken(user) {
-    const generatedToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '30m' })
+    const generatedToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '10d' })
     const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET)
     let tokenIs = new userRefToken({
         token: refreshToken
@@ -81,11 +81,11 @@ async function generateAccessToken(user) {
     return { generatedToken: generatedToken, refreshToken: refreshToken };
 }
 function generateAccessTokenOnly(user) {
-    const generatedToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '30m' })
+    const generatedToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '10d' })
     return generatedToken;
 }
 function generateAccessTokenOnly(user) {
-    const generatedToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '30m' })
+    const generatedToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '10d' })
     return generatedToken;
 }
 module.exports = {

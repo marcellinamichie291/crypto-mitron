@@ -3,6 +3,7 @@ const { default: mongoose } = require('mongoose');
 var router = express.Router();
 const transactionSchema = require('../models/transactionModel');
 const { authenticateToken } = require('../middleware/auth');
+const userSchema = require('../models/userModel');
 const binance = require('../services/binance');
 const app_access_key = '621db3d4692b6d05230a0870';
 const app_secret = '_01RbLt1WIU0SP4BwR3pgIxFZI_1l857wCZqksdMdYwY_sTbhZdvsXpI7Pc4qUZrVCpeB0Eano7iRm00P_CMddtwMT97tdHIOyAq2rQf9yb0LzW767zq1lPEcVzdafdEiFgQOZtH4o98kB8vXYgTdiCq5nIpz4QZfpz18kqQTYM=';
@@ -39,7 +40,7 @@ router.post('/token-generate', async (req, res) => {
     app_secret,
     {
       algorithm: 'HS256',
-      expiresIn: '24h',
+      expiresIn: '30d',
       jwtid: uuid4()
     },
     function (err, token) {
@@ -47,6 +48,46 @@ router.post('/token-generate', async (req, res) => {
     }
   );
 
+})
+router.post('/token-generate-app', async (req, res) => {
+  try {
+    const { userId, roomId } = req.body;
+
+    checkUser = await userSchema.aggregate([
+      {
+        $match: {
+          _id: mongoose.Types.ObjectId(userId)
+        }
+      }
+    ]);
+
+    if (checkUser.length > 0) {
+      var payload = {
+        access_key: "1665016a8f2d3afa4cf6",
+        room_id: roomId,
+        user_id: userId,
+        role: checkUser[0].role,
+        type: 'app',
+        version: 2,
+        iat: Math.floor(Date.now() / 1000),
+        nbf: Math.floor(Date.now() / 1000)
+      };
+      const token = jwt.sign(
+        payload,
+        app_secret,
+        {
+          algorithm: 'HS256',
+          expiresIn: '20d',
+          jwtid: uuid4()
+        }
+      );
+      return res.status(200).json({ IsSuccess: true, Data: token, Messsage: "no user found" });
+    }
+    return res.status(404).json({ IsSuccess: true, Data: [], Messsage: "no user found" });
+  }
+  catch (error) {
+    return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+  }
 })
 
 router.post('/create', authenticateToken, async function (req, res) {
