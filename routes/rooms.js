@@ -19,7 +19,7 @@ router.get('/', function (req, res, next) {
 router.post('/100ms-events', async (req, res) => {
     try {
         const event = req.body;
-        // console.log(event)
+        console.log(event)
         if (event.type == "peer.join.success") {
             const getRooms = await roomSchema.aggregate([
                 {
@@ -71,7 +71,7 @@ router.post('/100ms-events', async (req, res) => {
                 // console.log(updateStatus);
             }
         }
-        // res.send("success")
+        res.send("success")
     }
     catch (err) {
         return res.status(500).json({ IsSuccess: false, Data: [], Message: err.message || "Having issue is server" })
