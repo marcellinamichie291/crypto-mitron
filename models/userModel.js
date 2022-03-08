@@ -17,8 +17,8 @@ const userSchema = mongoose.Schema({
     //1-client
     role: {
         type: String,
-        enum: ["Host", "Client"],
-        default: "Client"
+        enum: ["Host", "Client", "User"],
+        default: "User"
     }
 });
 
