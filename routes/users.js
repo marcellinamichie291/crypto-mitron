@@ -10,7 +10,7 @@ router.get('/', function (req, res, next) {
 
 router.post('/signUp', async (req, res, next) => {
   try {
-    const { name, email, password, mobileNo } = req.body;
+    const { name, email, password, mobileNo, role } = req.body;
 
     let checkExist = await userSchema.aggregate([
       {
@@ -27,7 +27,8 @@ router.post('/signUp', async (req, res, next) => {
       name: name,
       email: email,
       mobileNo: mobileNo,
-      password: password
+      password: password,
+      role: role
     });
 
     await userIs.save();
@@ -89,7 +90,7 @@ router.post('/login', async (req, res, next) => {
 
       const { generatedToken, refreshToken } = await generateAccessToken(user);
       console.log(generatedToken + refreshToken);
-      return res.status(200).json({ IsSuccess: true, Data: [], token: generatedToken, refreshToken: refreshToken, Messsage: "user found" });
+      return res.status(200).json({ IsSuccess: true, Data: [], role: checkExist[0].role, token: generatedToken, refreshToken: refreshToken, Messsage: "user found" });
     }
     return res.status(404).json({ IsSuccess: true, Data: [], Messsage: "user not found" });
   } catch (error) {
