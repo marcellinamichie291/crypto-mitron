@@ -32,9 +32,9 @@ router.post('/100ms-events', async (req, res) => {
                     }
                 }
             ]);
-
+            console.log(getRooms.length);
             if (getRooms.length > 0) {
-                let updateStatus = await roomSchema.findOneAndUpdate(event.data.room_id, { status: "ONGOING" }, { new: true });
+                let updateStatus = await roomSchema.findOneAndUpdate(getRooms[0]._id, { status: "ONGOING" }, { new: true });
                 // console.log(updateStatus);
             }
         }
@@ -49,9 +49,9 @@ router.post('/100ms-events', async (req, res) => {
                     }
                 }
             ]);
-
+            console.log(getRooms.length);
             if (getRooms.length > 0) {
-                let updateStatus = await roomSchema.findOneAndUpdate(event.data.room_id, { status: "FINISHED" }, { new: true });
+                let updateStatus = await roomSchema.findOneAndUpdate(getRooms[0]._id, { status: "FINISHED" }, { new: true });
                 // console.log(updateStatus);
             }
         }
@@ -66,9 +66,9 @@ router.post('/100ms-events', async (req, res) => {
                     }
                 }
             ]);
-
+            console.log(getRooms.length);
             if (getRooms.length > 0) {
-                let updateStatus = await roomSchema.findOneAndUpdate(event.data.room_id, { status: "FINISHED" }, { new: true });
+                let updateStatus = await roomSchema.findOneAndUpdate(getRooms[0]._id, { status: "FINISHED" }, { new: true });
                 // console.log(updateStatus);
             }
         }
