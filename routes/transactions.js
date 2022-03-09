@@ -60,13 +60,12 @@ router.post('/token-generate-app', async (req, res) => {
         }
       }
     ]);
-
     if (checkUser.length > 0) {
       var payload = {
-        access_key: "1665016a8f2d3afa4cf6",
+        access_key: app_access_key,
         room_id: roomId,
         user_id: userId,
-        role: checkUser[0].role,
+        role: checkUser[0]._id,
         type: 'app',
         version: 2,
         iat: Math.floor(Date.now() / 1000),
