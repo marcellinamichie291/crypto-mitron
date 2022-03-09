@@ -65,7 +65,7 @@ router.post('/token-generate-app', async (req, res) => {
         access_key: app_access_key,
         room_id: roomId,
         user_id: userId,
-        role: checkUser[0]._id,
+        role: checkUser[0].role,
         type: 'app',
         version: 2,
         iat: Math.floor(Date.now() / 1000),
