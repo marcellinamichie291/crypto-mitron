@@ -21,6 +21,7 @@ router.post('/100ms-events', async (req, res) => {
         const event = req.body;
         console.log(event)
         if (event.type == "peer.join.success") {
+            console.log(event.data.room_id)
             const getRooms = await roomSchema.aggregate([
                 {
                     $match: {
@@ -170,7 +171,7 @@ router.post('/getRooms', authenticateToken, checkRole(["host"]), async (req, res
         return res.status(500).json({ IsSuccess: false, Data: [], Message: err.message || "Having issue is server" })
     }
 })
-router.post('/getAllRooms', async (req, res) => {
+router.get('/getAllRooms', async (req, res) => {
     try {
 
         let getRooms = await roomSchema.aggregate([
