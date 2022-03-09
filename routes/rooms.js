@@ -122,7 +122,7 @@ router.post('/trigger-event', async (req, res) => {
         console.log(err.message);
     }
 })
-router.post('/createRoom', authenticateToken, checkRole(["Host"]), async (req, res) => {
+router.post('/createRoom', authenticateToken, checkRole(["host"]), async (req, res) => {
     try {
         const { name, description } = req.body;
         const response = await createRoom100Ms(name, description);
@@ -149,7 +149,7 @@ router.post('/createRoom', authenticateToken, checkRole(["Host"]), async (req, r
         return res.status(500).json({ IsSuccess: false, Data: [], Message: err.message || "Having issue is server" })
     }
 })
-router.post('/getRooms', authenticateToken, checkRole(["Host"]), async (req, res) => {
+router.post('/getRooms', authenticateToken, checkRole(["host"]), async (req, res) => {
     try {
 
         let getRooms = await roomSchema.aggregate([
@@ -170,7 +170,7 @@ router.post('/getRooms', authenticateToken, checkRole(["Host"]), async (req, res
         return res.status(500).json({ IsSuccess: false, Data: [], Message: err.message || "Having issue is server" })
     }
 })
-router.post('/getAllRooms', authenticateToken, checkRole(["Host"]), async (req, res) => {
+router.post('/getAllRooms', async (req, res) => {
     try {
 
         let getRooms = await roomSchema.aggregate([
