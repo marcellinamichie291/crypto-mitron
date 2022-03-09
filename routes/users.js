@@ -90,7 +90,7 @@ router.post('/login', async (req, res, next) => {
 
       const { generatedToken, refreshToken } = await generateAccessToken(user);
       console.log(generatedToken + refreshToken);
-      return res.status(200).json({ IsSuccess: true, Data: [], role: checkExist[0].role, token: generatedToken, refreshToken: refreshToken, Messsage: "user found" });
+      return res.status(200).json({ IsSuccess: true, Data: checkExist, role: checkExist[0].role, token: generatedToken, refreshToken: refreshToken, Messsage: "user found" });
     }
     return res.status(404).json({ IsSuccess: true, Data: [], Messsage: "user not found" });
   } catch (error) {
