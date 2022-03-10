@@ -177,6 +177,7 @@ router.get('/getAllRooms', async (req, res) => {
         let getRooms = await roomSchema.aggregate([
             {
                 $match: {
+                    status: "ONGOING"
                 }
             }
         ]);
