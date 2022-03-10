@@ -26,7 +26,7 @@ router.post('/100ms-events', async (req, res) => {
                 {
                     $match: {
                         $and: [
-                            // { userId: mongoose.Types.ObjectId(event.data.user_id) },
+                            { userId: mongoose.Types.ObjectId(event.data.user_id) },
                             { _id: mongoose.Types.ObjectId(event.data.room_id) }
                         ]
                     }
@@ -43,7 +43,7 @@ router.post('/100ms-events', async (req, res) => {
                 {
                     $match: {
                         $and: [
-                            // { userId: mongoose.Types.ObjectId(event.data.user_id) },
+                            { userId: mongoose.Types.ObjectId(event.data.user_id) },
                             { _id: mongoose.Types.ObjectId(event.data.room_id) }
                         ]
                     }
@@ -60,7 +60,7 @@ router.post('/100ms-events', async (req, res) => {
                 {
                     $match: {
                         $and: [
-                            // { userId: mongoose.Types.ObjectId(event.data.user_id) },
+                            { userId: mongoose.Types.ObjectId(event.data.user_id) },
                             { _id: mongoose.Types.ObjectId(event.data.room_id) }
                         ]
                     }
