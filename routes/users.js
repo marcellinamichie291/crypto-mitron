@@ -212,7 +212,7 @@ router.post('/login', async (req, res, next) => {
     return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
   }
 })
-router.post('/walletTrasaction', authenticateToken, async (req, res) => {
+router.post('/updateWallet', authenticateToken, async (req, res) => {
   try {
     const {
       type,
@@ -231,14 +231,24 @@ router.post('/walletTrasaction', authenticateToken, async (req, res) => {
     })
 
     await storeDeposit.save();
-
-    return res.status(200).json({ IsSuccess: true, Data: [storeDeposit], Messsage: "your trasaction stored" });
+    let deposit = {
+      userId: userId,
+      type: type,
+      amount: amount,
+      currency: currency,
+      orderId: orderId,
+      time: storeDeposit.time,
+      createdAt: storeDeposit.createdAt,
+      updatedAt: storeDeposit.updatedAt,
+      id: storeDeposit._id
+    }
+    return res.status(200).json({ IsSuccess: true, Data: [deposit], Messsage: "your trasaction stored" });
   }
   catch (error) {
     return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
   }
 })
-router.get('/walletTrasaction', authenticateToken, async (req, res) => {
+router.get('/wallet', authenticateToken, async (req, res) => {
   try {
     // const userId = req.query.userid;
     const userId = req.user._id

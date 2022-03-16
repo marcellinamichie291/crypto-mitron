@@ -301,35 +301,6 @@ function toTransRes(userId, dbResult) {
   transRes.userId = userId;
   return transRes;
 }
-
-//This responds a POST request for the homepage
-// app.post('/users/insert', function (req, res) {
-//   console.log("Got a POST1 request for the homepage" + req.body.id);
-//   var name = req.body.name;
-//   var email = req.body.email;
-//   var phone = req.body.phone;
-//   var age = req.body.age;
-
-//   var user = { phone: phone, name: name, email: email, age: age };
-
-//   const token = jwt.sign(
-//     { name: name, email },
-//     "djdnkdnknknkn",
-//     {
-//       expiresIn: "365d",
-//     }
-//   );
-// app.get('/transactions/get/:userId', function(req, res) {
-//   var userId = req.params.userId;
-//   var query = { userId: userId};
-//   dbo.collection("transactions").find(query).toArray(function(err, dbResult) {
-//     if (err) throw err;
-//     var transRes = toTransRes(userId, dbResult);
-//     res.send(transRes);
-//   }
-//   );
-// });
-
 async function calculateQuantity(debitToken, debitAmount, creditToken) {
   try {
 
@@ -433,6 +404,35 @@ async function getWalletBalance(userId) {
   }
   return 0;
 }
+//This responds a POST request for the homepage
+// app.post('/users/insert', function (req, res) {
+//   console.log("Got a POST1 request for the homepage" + req.body.id);
+//   var name = req.body.name;
+//   var email = req.body.email;
+//   var phone = req.body.phone;
+//   var age = req.body.age;
+
+//   var user = { phone: phone, name: name, email: email, age: age };
+
+//   const token = jwt.sign(
+//     { name: name, email },
+//     "djdnkdnknknkn",
+//     {
+//       expiresIn: "365d",
+//     }
+//   );
+// app.get('/transactions/get/:userId', function(req, res) {
+//   var userId = req.params.userId;
+//   var query = { userId: userId};
+//   dbo.collection("transactions").find(query).toArray(function(err, dbResult) {
+//     if (err) throw err;
+//     var transRes = toTransRes(userId, dbResult);
+//     res.send(transRes);
+//   }
+//   );
+// });
+
+
 // app.get('/wallet/:userId', function(req, res) {
 //   var userId = req.params.userId;
 //   var query = { userId: userId};

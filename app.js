@@ -8,6 +8,7 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var transactionRoute = require('./routes/transactions');
 const roomRoute = require('./routes/rooms');
+const walletRoute = require('./routes/wallet')
 require('./config');
 // require('./routes/binanceSocket')
 var app = express();
@@ -27,6 +28,8 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/transactions', transactionRoute);
 app.use('/rooms', roomRoute);
+app.use('/wallet', walletRoute);
+
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));
