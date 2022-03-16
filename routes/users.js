@@ -17,7 +17,10 @@ router.post('/signUp', async (req, res, next) => {
     let checkExist = await userSchema.aggregate([
       {
         $match: {
-          mobileNo: mobileNo
+          $or: [
+            { mobileNo: mobileNo },
+            { email: email }
+          ]
         }
       }
     ]);
@@ -126,8 +129,8 @@ router.post('/addKyc', authenticateToken, async (req, res, next) => {
 
       await kyc.save();
       let user = {
-        name: name,
-        mobileNo: mobileNo
+        name: checkExist[0].name,
+        mobileNo: checkExist[0].mobileNo
       }
       // let user = {
       //   _id: checkExist[0]._id,
