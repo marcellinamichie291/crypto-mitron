@@ -115,8 +115,17 @@ router.post('/addKyc', authenticateToken, async (req, res, next) => {
         }
       }
     ]);
-
     if (checkExist.length > 0) {
+      let checkKyc = await userKyc.aggregate([
+        {
+          $match: {
+            userId: mongoose.Types.ObjectId(userId)
+          }
+        }
+      ])
+      if (checkKyc.length > 0) {
+        return res.status(409).json({ IsSuccess: true, Data: [], Messsage: "kyc detail already submitted" });
+      }
       let kyc = new userKyc({
         address: address,
         city: city,
@@ -203,15 +212,15 @@ router.post('/login', async (req, res, next) => {
     return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
   }
 })
-router.post('/walletTrasaction', async (req, res) => {
+router.post('/walletTrasaction', authenticateToken, async (req, res) => {
   try {
-    const { userId,
+    const {
       type,
       amount,
       currency,
       orderId
     } = req.body;
-
+    const userId = req.user._id
     let storeDeposit = new userWallet({
       userId: userId,
       type: type,
@@ -229,10 +238,10 @@ router.post('/walletTrasaction', async (req, res) => {
     return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
   }
 })
-router.get('/walletTrasaction', async (req, res) => {
+router.get('/walletTrasaction', authenticateToken, async (req, res) => {
   try {
-    const userId = req.query.userid;
-
+    // const userId = req.query.userid;
+    const userId = req.user._id
     let getTrans = await userWallet.aggregate([
       {
         $match: {

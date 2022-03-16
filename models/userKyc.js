@@ -23,7 +23,7 @@ const userKyc = mongoose.Schema({
         type: mongoose.Types.ObjectId,
         ref: "users"
     }
-});
+}, { timestamps: true });
 // userName: {
 //     type: String
 // },

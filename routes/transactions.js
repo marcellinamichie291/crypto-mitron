@@ -93,9 +93,12 @@ router.post('/token-generate-app', async (req, res) => {
 router.post('/create', authenticateToken, async function (req, res) {
   try {
 
-    const { userId, debitToken, creditToken, creditAmount, debitAmount, transactionDate, status } = req.body;
+    const { debitToken, creditToken, debitAmount, transactionDate, status } = req.body;
 
-    let createTransaction = new transactionSchema({ userId: userId, debitToken: debitToken, debitAmount: debitAmount, creditToken: creditToken, creditAmount: creditAmount, transactionDate: transactionDate, status: status });
+    const userId = req.user._id;
+    const checkQuantityIs = await calculateQuantity(debitToken, debitAmount, creditToken)
+
+    let createTransaction = new transactionSchema({ userId: userId, debitToken: debitToken, debitAmount: debitAmount, creditToken: creditToken, creditAmount: checkQuantityIs, transactionDate: transactionDate, status: status });
 
     await createTransaction.save();
     return res.status(200).json({ IsSuccess: true, Data: [createTransaction], Messsage: "Transaction stored successfully" });
@@ -104,11 +107,12 @@ router.post('/create', authenticateToken, async function (req, res) {
   }
 })
 
-router.get('/get/:userId', authenticateToken, async function (req, res) {
+router.get('/get/', authenticateToken, async function (req, res) {
   try {
 
-    const userId = req.params.userId;
-
+    // const userId = req.params.userId;
+    const userId = req.user._id;
+    // console.log(userId)
     let getAllTransactions = await transactionSchema.aggregate([
       {
         $match: {
@@ -116,8 +120,15 @@ router.get('/get/:userId', authenticateToken, async function (req, res) {
         }
       },
       {
+        $addFields: {
+          id: "$_id"
+        }
+      },
+      {
         $project: {
-          userId: 0
+          userId: 0,
+          _id: 0,
+          __v: 0
         }
       }
     ]);
@@ -135,10 +146,10 @@ router.get('/get/:userId', authenticateToken, async function (req, res) {
     return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
   }
 });
-router.get('/wallet/:userId', async function (req, res) {
+router.get('/wallet/', authenticateToken, async function (req, res) {
   try {
-    var userId = req.params.userId;
-
+    // var userId = req.params.userId;
+    const userId = req.user._id;
 
     let getAllTransactions = await transactionSchema.aggregate([
       {
@@ -156,11 +167,11 @@ router.get('/wallet/:userId', async function (req, res) {
     return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
   }
 });
-router.get('/wallet/v1/:userId', async function (req, res) {
+router.get('/wallet/v1/', authenticateToken, async function (req, res) {
   try {
-    var userId = req.params.userId;
+    // var userId = req.params.userId;
 
-
+    const userId = req.user._id;
     let getAllTransactions = await transactionSchema.aggregate([
       {
         $match: {
@@ -241,10 +252,23 @@ async function getAssetWithUSDTINR(tokenIs) {
       }
     }
     else {
-      obj = {
-        token: keys[i],
-        quantity: tokenIs[keys[i]]
+      if (keys == "USDT") {
+        obj = {
+          token: keys[i],
+          quantity: tokenIs[keys[i]],
+          USDT: tokenIs[keys[i]],
+          INR: tokenIs[keys[i]] * 75
+        }
       }
+      else {
+        obj = {
+          token: keys[i],
+          quantity: tokenIs[keys[i]],
+          USDT: tokenIs[keys[i]] / 75,
+          INR: tokenIs[keys[i]]
+        }
+      }
+
     }
 
     allAsset.push(obj);
@@ -306,15 +330,47 @@ function toTransRes(userId, dbResult) {
 //   );
 // });
 
-function calculateQuantity(price, toCurrency) {
-  let checkCurrency = currency.find((curr) => { return curr.token == toCurrency });
-  // console.log(checkCurrency);
-  if (checkCurrency != undefined) {
-    let quantity = price / checkCurrency.price;
-    // console.log(quantity)
-    return quantity;
+async function calculateQuantity(debitToken, debitAmount, creditToken) {
+  try {
+
+    if (debitToken == "INR") {
+      //convert to INR and do transaction
+
+      const priceIs = debitAmount / 75;
+      console.log(priceIs)
+      const exchange = `${creditToken}USDT`
+      const priceToken = await binance.prices(exchange);
+      // console.log(priceToken)
+      const quantity = priceIs / parseFloat(priceToken[exchange]);
+      // console.log(quantity)
+      return quantity.toFixed(5);
+    }
+    else {
+      //just convert debittoken to credittoken
+      const exchange = `${creditToken}${debitToken}`
+      const priceToken = await binance.prices(exchange);
+      const quantity = debitAmount / parseFloat(priceToken[exchange]);
+      // console.log(quantity)
+      return quantity.toFixed(5);
+    }
+    // let checkCurrency = currency.find((curr) => { return curr.token == toCurrency });
+    // const responseIs = await binance.marketBuy("USDBTC", quantity.toFixed(10), (error, response) => {
+    //   console.info("Market Buy response", response);
+    //   console.info("order id: " + response.orderId);
+    //   console.log(error)
+    //   // Now you can limit sell with a stop loss, etc.
+    // });
+    // // console.log(checkCurrency);
+    // if (checkCurrency != undefined) {
+    //   let quantity = price / checkCurrency.price;
+    //   // console.log(quantity)
+    //   return quantity;
+    // }
+    return 0;
   }
-  return 0;
+  catch (err) {
+    console.log(err.message)
+  }
 }
 function convertCurrency(fromCurrency, price, toCurrency) {
   //check for available balance

@@ -150,7 +150,7 @@ router.post('/createRoom', authenticateToken, checkRole(["host"]), async (req, r
         return res.status(500).json({ IsSuccess: false, Data: [], Message: err.message || "Having issue is server" })
     }
 })
-router.post('/getRooms', authenticateToken, checkRole(["host"]), async (req, res) => {
+router.post('/getMyRooms', authenticateToken, checkRole(["host"]), async (req, res) => {
     try {
 
         let getRooms = await roomSchema.aggregate([

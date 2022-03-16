@@ -12,6 +12,6 @@ const registrationTypes = mongoose.Schema({
     //0-pending
     //1-executed
     status: Number
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model("transactions", registrationTypes);
