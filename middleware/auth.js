@@ -23,9 +23,7 @@ function generateRefreshToken() {
             if (err) return res.sendStatus(403)
             const accessToken = await generateAccessTokenOnly({
                 _id: user._id,
-                mobileNo: user.mobileNo,
-                password: user.password,
-
+                timestamp: Date.now()
             })
             // console.log(accessToken)
             res.json({ accessToken: accessToken });

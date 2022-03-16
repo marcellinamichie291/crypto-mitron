@@ -10,15 +10,15 @@ const userSchema = mongoose.Schema({
     email: {
         type: String
     },
-    password: {
-        type: String
-    },
     //0-host
     //1-client
     role: {
         type: String,
         enum: ["host", "client", "user"],
         default: "user"
+    },
+    password: {
+        type: String
     }
 });
 
