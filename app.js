@@ -9,6 +9,7 @@ var usersRouter = require('./routes/users');
 var transactionRoute = require('./routes/transactions');
 const roomRoute = require('./routes/rooms');
 const walletRoute = require('./routes/wallet')
+const tokenRouter = require('./routes/tokens')
 require('./config');
 // require('./routes/binanceSocket')
 var app = express();
@@ -29,6 +30,7 @@ app.use('/users', usersRouter);
 app.use('/transactions', transactionRoute);
 app.use('/rooms', roomRoute);
 app.use('/wallet', walletRoute);
+app.use('/tokens', tokenRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

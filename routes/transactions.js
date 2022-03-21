@@ -6,6 +6,8 @@ const { authenticateToken } = require('../middleware/auth');
 const userSchema = require('../models/userModel');
 const userWallet = require('../models/userWallet');
 const binance = require('../services/binance');
+const constants = require('../utils/constants');
+const axios = require('axios')
 const app_access_key = '621db3d4692b6d05230a0870';
 const app_secret = '_01RbLt1WIU0SP4BwR3pgIxFZI_1l857wCZqksdMdYwY_sTbhZdvsXpI7Pc4qUZrVCpeB0Eano7iRm00P_CMddtwMT97tdHIOyAq2rQf9yb0LzW767zq1lPEcVzdafdEiFgQOZtH4o98kB8vXYgTdiCq5nIpz4QZfpz18kqQTYM=';
 
@@ -404,6 +406,7 @@ async function getWalletBalance(userId) {
   }
   return 0;
 }
+
 //This responds a POST request for the homepage
 // app.post('/users/insert', function (req, res) {
 //   console.log("Got a POST1 request for the homepage" + req.body.id);

@@ -57,7 +57,7 @@ router.get('/getDetails', authenticateToken, async function (req, res) {
 
 //
 async function getAssetWithUSDTINR(tokenIs) {
-
+    // console.log("get inr and usdt")
     allAsset = []
 
     //get binance prices
@@ -66,7 +66,8 @@ async function getAssetWithUSDTINR(tokenIs) {
     //getting token 
     const keys = Object.keys(tokenIs)
     // console.log(keys)
-
+    let usdt = 0;
+    let inr = 0;
     //loop for finding usdt and inr prices
     for (i = 0; i < keys.length; i++) {
         token = keys[i] + "USDT";
@@ -74,6 +75,8 @@ async function getAssetWithUSDTINR(tokenIs) {
         if (token in prices) {
             USDT = prices[token] * tokenIs[keys[i]]
             INR = USDT * 75;
+            usdt += USDT;
+            inr += INR;
             obj = {
                 token: keys[i],
                 quantity: tokenIs[keys[i]],
@@ -82,7 +85,10 @@ async function getAssetWithUSDTINR(tokenIs) {
             }
         }
         else {
-            if (keys == "USDT") {
+            // console.log(keys[i])
+            if (keys[i] == "USDT") {
+                usdt += tokenIs[keys[i]];
+                inr += tokenIs[keys[i]] * 75
                 obj = {
                     token: keys[i],
                     quantity: tokenIs[keys[i]],
@@ -91,6 +97,8 @@ async function getAssetWithUSDTINR(tokenIs) {
                 }
             }
             else {
+                usdt += tokenIs[keys[i]] / 75;
+                inr += tokenIs[keys[i]]
                 obj = {
                     token: keys[i],
                     quantity: tokenIs[keys[i]],
@@ -103,8 +111,8 @@ async function getAssetWithUSDTINR(tokenIs) {
 
         allAsset.push(obj);
     }
-    console.log(allAsset)
-    return allAsset;
+    // console.log(allAsset)
+    return { USDT: usdt, INR: inr, tokens: allAsset };
 }
 
 //
