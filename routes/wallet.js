@@ -6,6 +6,7 @@ const userSchema = require('../models/userModel');
 const userWallet = require('../models/userWallet');
 const { authenticateToken } = require('../middleware/auth');
 const transactionSchema = require('../models/transactionModel');
+const constants = require('../utils/constants');
 //wallet token 
 router.get('/get', authenticateToken, async function (req, res) {
     try {
@@ -81,7 +82,8 @@ async function getAssetWithUSDTINR(tokenIs) {
                 token: keys[i],
                 quantity: tokenIs[keys[i]],
                 USDT: USDT,
-                INR: INR
+                INR: INR,
+                icon: constants.ICON_BASE_URL + keys[i].toLowerCase() + ".png"
             }
         }
         else {
@@ -93,7 +95,8 @@ async function getAssetWithUSDTINR(tokenIs) {
                     token: keys[i],
                     quantity: tokenIs[keys[i]],
                     USDT: tokenIs[keys[i]],
-                    INR: tokenIs[keys[i]] * 75
+                    INR: tokenIs[keys[i]] * 75,
+                    icon: constants.ICON_BASE_URL + keys[i].toLowerCase() + ".png"
                 }
             }
             else {
@@ -103,7 +106,8 @@ async function getAssetWithUSDTINR(tokenIs) {
                     token: keys[i],
                     quantity: tokenIs[keys[i]],
                     USDT: tokenIs[keys[i]] / 75,
-                    INR: tokenIs[keys[i]]
+                    INR: tokenIs[keys[i]],
+                    icon: constants.ICON_BASE_URL + keys[i].toLowerCase() + ".png"
                 }
             }
 
