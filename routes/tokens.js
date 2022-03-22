@@ -43,7 +43,7 @@ router.get('/getTokenDetails', async (req, res) => {
             banners: constants.BANNER,
             tokens: tokenIs
         }
-        return res.status(200).json({ IsSuccess: true, Data: resp, Messsage: "Transaction stored successfully" });
+        return res.status(200).json({ IsSuccess: true, Data: resp, Messsage: "All Token Details Fetched Successfully" });
     } catch (error) {
         return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
     }
@@ -88,7 +88,7 @@ router.get('/getTopGainers', async (req, res) => {
             banners: constants.BANNER,
             tokens: tokensData
         }
-        return res.status(200).json({ IsSuccess: true, Data: resp, Messsage: "Transaction stored successfully" });
+        return res.status(200).json({ IsSuccess: true, Data: resp, Messsage: "top loosers by 24 hour change" });
     } catch (error) {
         return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
     }
@@ -128,7 +128,7 @@ router.get('/getTopLoosers', async (req, res) => {
             tokens: tokensData
         }
         // resp = tokenIs.sort((a, b) => parseFloat(b.change_24h_per) - parseFloat(a.change_24h_per));
-        return res.status(200).json({ IsSuccess: true, Data: resp, Messsage: "Transaction stored successfully" });
+        return res.status(200).json({ IsSuccess: true, Data: resp, Messsage: "top loosers by 24 hour change" });
     } catch (error) {
         return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
     }
