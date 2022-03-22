@@ -88,7 +88,7 @@ router.get('/getTopGainers', async (req, res) => {
             banners: constants.BANNER,
             tokens: tokensData
         }
-        return res.status(200).json({ IsSuccess: true, Data: resp, Messsage: "top loosers by 24 hour change" });
+        return res.status(200).json({ IsSuccess: true, Data: resp, Messsage: "top gainers by 24 hour change" });
     } catch (error) {
         return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
     }
