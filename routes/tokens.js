@@ -28,7 +28,7 @@ router.get('/getTokenDetails', async (req, res) => {
                 // "label": "Bitcoin",
                 "icon": constants.ICON_BASE_URL + token + ".png",
                 last_price: tokenPrices.data.lastPrice,
-                priceChaneg: tokenPrices.data.priceChange,
+                priceChange: tokenPrices.data.priceChange,
                 change_24h_per: tokenPrices.data.priceChangePercent
             }
             tokenIs.push(tokenObj)
@@ -68,7 +68,7 @@ router.get('/getTopGainers', async (req, res) => {
                 // "label": "Bitcoin",
                 "icon": constants.ICON_BASE_URL + token + ".png",
                 last_price: tokenPrices.data.lastPrice,
-                priceChaneg: tokenPrices.data.priceChange,
+                priceChange: tokenPrices.data.priceChange,
                 change_24h_per: tokenPrices.data.priceChangePercent
             }
             tokenIs.push(tokenObj)
@@ -110,7 +110,7 @@ router.get('/getTopLoosers', async (req, res) => {
                 // "label": "Bitcoin",
                 "icon": constants.ICON_BASE_URL + token + ".png",
                 last_price: tokenPrices.data.lastPrice,
-                priceChaneg: tokenPrices.data.priceChange,
+                priceChange: tokenPrices.data.priceChange,
                 change_24h_per: tokenPrices.data.priceChangePercent
             }
             tokenIs.push(tokenObj)
