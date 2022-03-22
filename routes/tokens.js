@@ -61,30 +61,33 @@ router.get('/getTopGainers', async (req, res) => {
             const tokenPair = (token + "usdt").toUpperCase();
             const tokenPrices = await getBinance24Change(tokenPair)
             // console.log(tokenPrices)
-            let tokenObj = {
-                "token": token,
-                "token_pair": token + "usdt",
-                "name": tokenName,
-                // "label": "Bitcoin",
-                "icon": constants.ICON_BASE_URL + token + ".png",
-                last_price: tokenPrices.data.lastPrice,
-                priceChange: tokenPrices.data.priceChange,
-                change_24h_per: tokenPrices.data.priceChangePercent
+            if (tokenPrices.data.priceChangePercent > 0) {
+                let tokenObj = {
+                    "token": token,
+                    "token_pair": token + "usdt",
+                    "name": tokenName,
+                    // "label": "Bitcoin",
+                    "icon": constants.ICON_BASE_URL + token + ".png",
+                    last_price: tokenPrices.data.lastPrice,
+                    priceChange: tokenPrices.data.priceChange,
+                    change_24h_per: tokenPrices.data.priceChangePercent
+                }
+                tokenIs.push(tokenObj)
             }
-            tokenIs.push(tokenObj)
         }
 
         console.log(tokenIs.length)
         // console.log(tokenIs)
         // console.log(tokens)
         // console.log(tokens)
+
+        // resp = tokenIs.sort((a, b) => parseFloat(a.change_24h_per) - parseFloat(b.change_24h_per));
+        tokensData = tokenIs.sort((a, b) => parseFloat(b.change_24h_per) - parseFloat(a.change_24h_per));
         let resp = {
             currency: constants.CURRENCY,
             banners: constants.BANNER,
-            tokens: tokenIs
+            tokens: tokensData
         }
-        // resp = tokenIs.sort((a, b) => parseFloat(a.change_24h_per) - parseFloat(b.change_24h_per));
-        resp = tokenIs.sort((a, b) => parseFloat(b.change_24h_per) - parseFloat(a.change_24h_per));
         return res.status(200).json({ IsSuccess: true, Data: resp, Messsage: "Transaction stored successfully" });
     } catch (error) {
         return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
@@ -102,21 +105,28 @@ router.get('/getTopLoosers', async (req, res) => {
             const tokenName = token.toUpperCase();
             const tokenPair = (token + "usdt").toUpperCase();
             const tokenPrices = await getBinance24Change(tokenPair)
-            // console.log(tokenPrices)
-            let tokenObj = {
-                "token": token,
-                "token_pair": token + "usdt",
-                "name": tokenName,
-                // "label": "Bitcoin",
-                "icon": constants.ICON_BASE_URL + token + ".png",
-                last_price: tokenPrices.data.lastPrice,
-                priceChange: tokenPrices.data.priceChange,
-                change_24h_per: tokenPrices.data.priceChangePercent
+            if (tokenPrices.data.priceChangePercent < 0) {
+                // console.log(tokenPrices)
+                let tokenObj = {
+                    "token": token,
+                    "token_pair": token + "usdt",
+                    "name": tokenName,
+                    // "label": "Bitcoin",
+                    "icon": constants.ICON_BASE_URL + token + ".png",
+                    last_price: tokenPrices.data.lastPrice,
+                    priceChange: tokenPrices.data.priceChange,
+                    change_24h_per: tokenPrices.data.priceChangePercent
+                }
+                tokenIs.push(tokenObj)
             }
-            tokenIs.push(tokenObj)
         }
 
-        resp = tokenIs.sort((a, b) => parseFloat(a.change_24h_per) - parseFloat(b.change_24h_per));
+        tokensData = tokenIs.sort((a, b) => parseFloat(a.change_24h_per) - parseFloat(b.change_24h_per));
+        let resp = {
+            currency: constants.CURRENCY,
+            banners: constants.BANNER,
+            tokens: tokensData
+        }
         // resp = tokenIs.sort((a, b) => parseFloat(b.change_24h_per) - parseFloat(a.change_24h_per));
         return res.status(200).json({ IsSuccess: true, Data: resp, Messsage: "Transaction stored successfully" });
     } catch (error) {
