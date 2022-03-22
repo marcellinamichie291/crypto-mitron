@@ -1,6 +1,6 @@
 module.exports = {
     TOKENS:
-        ["btc", "eth", "bnb", "usdc", "xrp", "matic", "trx"],
+        ["btc", "eth", "bnb", "usdc", "xrp", "matic", "trx", "rare", "adadown"],
     BANNER: [
         "https://bitron-test.s3.ap-south-1.amazonaws.com/banner/banner1.png",
         "https://bitron-test.s3.ap-south-1.amazonaws.com/banner/banner2.png",
