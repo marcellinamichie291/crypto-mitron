@@ -55,7 +55,7 @@ function checkRole(roles) {
 
 }
 function authenticateToken(req, res, next) {
-    console.log(req.headers)
+    // console.log(req.headers)
     const authHeader = req.headers['authorization']
     // console.log(authHeader)
     const token = authHeader && authHeader.split(' ')[1] || req.signedCookies.access_token
