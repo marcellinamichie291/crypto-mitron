@@ -44,8 +44,11 @@ router.get('/getDetails', authenticateToken, async function (req, res) {
             }
         ]);
         if (getAllTransactions.length > 0) {
+            console.log("data find" + Date.now());
             let getResults = await toWalletRes(userId, getAllTransactions);
+            console.log("token" + Date.now())
             const finalToken = await getAssetWithUSDTINR(getResults.tokens)
+            console.log("calculatedDone" + Date.now());
             // console.log(finalTokenPrice)
             return res.status(200).json({ IsSuccess: true, Data: finalToken, Messsage: "Transaction Found successfully" });
         }
@@ -60,10 +63,10 @@ router.get('/getDetails', authenticateToken, async function (req, res) {
 async function getAssetWithUSDTINR(tokenIs) {
     // console.log("get inr and usdt")
     allAsset = []
-
+    console.log("before binance" + Date.now());
     //get binance prices
     const prices = await binance.prices();
-
+    console.log("after binance" + Date.now());
     //getting token 
     const keys = Object.keys(tokenIs)
     // console.log(keys)
@@ -112,7 +115,7 @@ async function getAssetWithUSDTINR(tokenIs) {
             }
 
         }
-
+        console.log("final arr" + Date.now());
         allAsset.push(obj);
     }
     // console.log(allAsset)
