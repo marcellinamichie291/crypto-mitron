@@ -305,7 +305,7 @@ function toTransRes(userId, dbResult) {
 }
 async function calculateQuantity(debitToken, debitAmount, creditToken) {
   try {
-
+    console.log(debitToken + "  " + debitAmount + " " + creditToken)
     if (debitToken == "INR") {
       //convert to INR and do transaction
 
@@ -320,9 +320,12 @@ async function calculateQuantity(debitToken, debitAmount, creditToken) {
     }
     else {
       //just convert debittoken to credittoken
-      const exchange = `${creditToken}${debitToken}`
-      const priceToken = await binance.prices(exchange);
-      const quantity = debitAmount / parseFloat(priceToken[exchange]);
+      console.log(debitToken + "  " + debitAmount + " " + creditToken)
+      let exchangeIs = creditToken + "" + debitToken;
+      // console.log(exchangeIs)
+      const priceToken = await binance.prices(exchangeIs);
+      // console.log(priceToken)
+      const quantity = debitAmount / parseFloat(priceToken[exchangeIs]);
       // console.log(quantity)
       return quantity.toFixed(5);
     }

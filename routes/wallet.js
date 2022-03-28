@@ -1,7 +1,11 @@
 var express = require('express');
 var router = express.Router();
 const { default: mongoose } = require('mongoose');
-const binance = require('../services/binance');
+const Binance = require('node-binance-api');
+const binance = new Binance().options({
+    APIKEY: process.env.BINANCE_APIKEY,
+    APISECRET: process.env.BINANCE_APISECRET
+});
 const userSchema = require('../models/userModel');
 const userWallet = require('../models/userWallet');
 const { authenticateToken } = require('../middleware/auth');
@@ -46,6 +50,7 @@ router.get('/getDetails', authenticateToken, async function (req, res) {
         if (getAllTransactions.length > 0) {
             console.log("data find" + Date.now());
             let getResults = await toWalletRes(userId, getAllTransactions);
+            console.log(getResults);
             console.log("token" + Date.now())
             const finalToken = await getAssetWithUSDTINR(getResults.tokens)
             console.log("calculatedDone" + Date.now());
@@ -58,8 +63,72 @@ router.get('/getDetails', authenticateToken, async function (req, res) {
     }
 });
 
+router.get('/getDetailsv', authenticateToken, async function (req, res) {
+    try {
+        // var userId = req.params.userId;
 
-//
+        const userId = req.user._id;
+        let getDebitTransactions = await transactionSchema.aggregate([
+            {
+                $addFields: {
+                    debitAmountIs: { $subtract: [0, '$debitAmount'] }
+                }
+            },
+            {
+                $match: {
+                    userId: mongoose.Types.ObjectId(userId)
+                }
+            },
+            {
+                $group:
+                {
+                    _id: { token: "$debitToken" },
+                    total: { $sum: "$debitAmountIs" }
+                }
+            }
+        ]);
+        let getCreditTransactions = await transactionSchema.aggregate([
+            {
+                $match: {
+                    userId: mongoose.Types.ObjectId(userId)
+                }
+            },
+            {
+                $group:
+                {
+                    _id: { token: "$creditToken" },
+                    total: { $sum: "$creditAmount" }
+                }
+            }
+        ]);
+
+        if (getCreditTransactions.length > 0 && getDebitTransactions.length > 0) {
+            console.log("data find" + Date.now());
+            const results = [...getCreditTransactions, ...getDebitTransactions];
+            const resultIs = results.reduce(function (res, value) {
+                if (!res[value._id.token]) {
+                    res[value._id.token] = 0
+                }
+                res[value._id.token] += value.total;
+                return res;
+            }, {});
+            // console.log(results)
+            // console.log(resultIs)
+
+            // let getResults = await toWalletRes(userId, getAllTransactions);
+            // console.log(getResults);
+            console.log("token" + Date.now())
+            const finalToken = await getAssetWithUSDTINR(resultIs)
+            console.log("calculatedDone" + Date.now());
+            // console.log(finalTokenPrice)
+            return res.status(200).json({ IsSuccess: true, Data: finalToken, Messsage: "Transaction Found successfully" });
+        }
+        return res.status(404).json({ IsSuccess: true, Data: [], Messsage: "No any transactions found" });
+    } catch (error) {
+        return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+    }
+});
+
 async function getAssetWithUSDTINR(tokenIs) {
     // console.log("get inr and usdt")
     allAsset = []
@@ -115,9 +184,10 @@ async function getAssetWithUSDTINR(tokenIs) {
             }
 
         }
-        console.log("final arr" + Date.now());
+
         allAsset.push(obj);
     }
+    console.log("final arr" + Date.now());
     // console.log(allAsset)
     return { USDT: usdt, INR: inr, tokens: allAsset };
 }
