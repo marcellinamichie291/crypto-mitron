@@ -2,10 +2,12 @@ var express = require('express');
 var router = express.Router();
 const { default: mongoose } = require('mongoose');
 const Binance = require('node-binance-api');
+const cron = require('node-cron');
 const binance = new Binance().options({
     APIKEY: process.env.BINANCE_APIKEY,
     APISECRET: process.env.BINANCE_APISECRET
 });
+let pricesToken = {};
 const userSchema = require('../models/userModel');
 const userWallet = require('../models/userWallet');
 const { authenticateToken } = require('../middleware/auth');
@@ -134,7 +136,7 @@ async function getAssetWithUSDTINR(tokenIs) {
     allAsset = []
     console.log("before binance" + Date.now());
     //get binance prices
-    const prices = await binance.prices();
+    const prices = pricesToken;
     console.log("after binance" + Date.now());
     //getting token 
     const keys = Object.keys(tokenIs)
@@ -249,4 +251,13 @@ async function getWalletBalance(userId) {
     }
     return 0;
 }
+cron.schedule('*/10 * * * * *', async () => {
+    try {
+        pricesToken = await binance.prices();
+        console.log("prices updated  " + Date.now())
+    } catch (error) {
+        console.log(error.message ||
+            "Having issue")
+    }
+});
 module.exports = router;
