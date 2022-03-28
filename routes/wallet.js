@@ -37,7 +37,7 @@ router.get('/get', authenticateToken, async function (req, res) {
 });
 
 //wallet token with their current inr and usdt price
-router.get('/getDetails', authenticateToken, async function (req, res) {
+router.get('/getDetailsSlow', authenticateToken, async function (req, res) {
     try {
         // var userId = req.params.userId;
 
@@ -65,7 +65,7 @@ router.get('/getDetails', authenticateToken, async function (req, res) {
     }
 });
 
-router.get('/getDetailsv', authenticateToken, async function (req, res) {
+router.get('/getDetails', authenticateToken, async function (req, res) {
     try {
         // var userId = req.params.userId;
 
