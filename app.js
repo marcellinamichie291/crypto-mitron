@@ -10,6 +10,9 @@ var transactionRoute = require('./routes/transactions');
 const roomRoute = require('./routes/rooms');
 const walletRoute = require('./routes/wallet')
 const tokenRouter = require('./routes/tokens')
+const responseTime = require('./response-time');
+
+
 require('./config');
 // require('./routes/binanceSocket')
 var app = express();
@@ -24,7 +27,7 @@ app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
+app.use(responseTime);
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/transactions', transactionRoute);

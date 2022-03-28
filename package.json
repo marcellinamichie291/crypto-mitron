@@ -6,6 +6,7 @@
     "start": "nodemon ./bin/www"
   },
   "dependencies": {
+    "aws-sdk": "^2.1098.0",
     "axios": "^0.26.0",
     "bcrypt": "^5.0.1",
     "body-parser": "^1.19.2",
@@ -23,6 +24,7 @@
     "mongoose": "^6.2.3",
     "morgan": "^1.10.0",
     "node-binance-api": "^0.13.1",
+    "node-cron": "^3.0.0",
     "nodemon": "^2.0.15",
     "pusher": "^5.0.1",
     "uuid4": "^2.0.2",
