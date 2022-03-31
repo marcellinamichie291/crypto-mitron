@@ -29,6 +29,7 @@ router.get('/', function (req, res, next) {
 
 var jwt = require('jsonwebtoken');
 var uuid4 = require('uuid4');
+const e = require('express');
 
 
 router.post('/token-generate', async (req, res) => {
@@ -98,7 +99,29 @@ router.post('/create', authenticateToken, async function (req, res) {
     const { debitToken, creditToken, debitAmount, transactionDate, status } = req.body;
 
     const userId = req.user._id;
+
     const checkQuantityIs = await calculateQuantity(debitToken, debitAmount, creditToken)
+
+    // return;
+    if (debitToken != "INR") {
+      const userWalletBalance = await getWalletBalanceV1(userId);
+      console.log(userWalletBalance);
+      return
+      if (userWalletBalance.debitToken < debitAmount) {
+        return res.status(400).json({ IsSuccess: true, Data: [], Messsage: "User does not have sufficient balance" });
+      }
+    }
+    else {
+      const balanceIs = await getWalletBalanceMongo(userId);
+      if (balanceIs.length > 0) {
+        if (balanceIs[0].totalAmount < debitAmount) {
+          return res.status(400).json({ IsSuccess: true, Data: [], Messsage: "User does not have sufficient balance" });
+        }
+      }
+      else {
+        return res.status(400).json({ IsSuccess: true, Data: [], Messsage: "User does not have sufficient balance" });
+      }
+    }
 
     let createTransaction = new transactionSchema({ userId: userId, debitToken: debitToken, debitAmount: debitAmount, creditToken: creditToken, creditAmount: checkQuantityIs, transactionDate: transactionDate, status: status });
 
@@ -409,7 +432,83 @@ async function getWalletBalance(userId) {
   }
   return 0;
 }
+async function getWalletBalanceMongo(userId) {
+  let getBalance = await userWallet.aggregate([
+    {
+      $match: {
+        userId: mongoose.Types.ObjectId(userId)
+      }
+    },
+    {
+      $addFields: {
+        amountIs: {
+          $cond: { if: { $eq: ['$type', 'DEPOSIT'] }, then: '$amount', else: { $subtract: [0, '$amount'] } }
+        }
+      }
+    }
+    , {
+      $group:
+      {
+        _id: {},
+        totalAmount: { $sum: "$amountIs" },
+        count: { $sum: 1 }
+      }
+    }
+  ])
+  if (getBalance.length > 0) {
+    return getBalance;
+  }
+  return getBalance;
+}
+async function getWalletBalanceV1(userId) {
+  let getDebitTransactions = await transactionSchema.aggregate([
+    {
+      $addFields: {
+        debitAmountIs: { $subtract: [0, '$debitAmount'] }
+      }
+    },
+    {
+      $match: {
+        userId: mongoose.Types.ObjectId(userId)
+      }
+    },
+    {
+      $group:
+      {
+        _id: { token: "$debitToken" },
+        total: { $sum: "$debitAmountIs" }
+      }
+    }
+  ]);
+  let getCreditTransactions = await transactionSchema.aggregate([
+    {
+      $match: {
+        userId: mongoose.Types.ObjectId(userId)
+      }
+    },
+    {
+      $group:
+      {
+        _id: { token: "$creditToken" },
+        total: { $sum: "$creditAmount" }
+      }
+    }
+  ]);
 
+  if (getCreditTransactions.length > 0 && getDebitTransactions.length > 0) {
+    console.log("data find" + Date.now());
+    const results = [...getCreditTransactions, ...getDebitTransactions];
+    const resultIs = results.reduce(function (res, value) {
+      if (!res[value._id.token]) {
+        res[value._id.token] = 0
+      }
+      res[value._id.token] += value.total;
+      return res;
+    }, {});
+    return resultIs;
+  }
+  return {};
+}
 //This responds a POST request for the homepage
 // app.post('/users/insert', function (req, res) {
 //   console.log("Got a POST1 request for the homepage" + req.body.id);

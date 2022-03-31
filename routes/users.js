@@ -5,6 +5,13 @@ const userKyc = require('../models/userKyc');
 const { generateAccessToken, generateRefreshToken, authenticateToken } = require('../middleware/auth');
 const { default: mongoose } = require('mongoose');
 const userWallet = require('../models/userWallet');
+const CLIENT_ID = "525460832991-afsdffsq6liot36lmlfpuk6ir9fldtdn.apps.googleusercontent.com"
+const { OAuth2Client } = require('google-auth-library');
+const client = new OAuth2Client(CLIENT_ID);
+const bodySchema = require('../models/bodyData');
+
+
+
 /* GET users listing. */
 router.get('/', function (req, res, next) {
   res.send('respond with a resource');
@@ -55,6 +62,67 @@ router.post('/signUp', async (req, res, next) => {
   } catch (error) {
     return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
   }
+})
+router.post('/signUpWithGoogle', async (req, res, next) => {
+  try {
+    const { name, email, password, mobileNo, role } = req.body;
+
+    let checkExist = await userSchema.aggregate([
+      {
+        $match: {
+          $or: [
+            { mobileNo: mobileNo },
+            { email: email }
+          ]
+        }
+      }
+    ]);
+
+    if (checkExist.length > 0) {
+      let user = {
+        _id: checkExist[0]._id,
+        timestamp: Date.now()
+      }
+
+      const { generatedToken, refreshToken } = await generateAccessToken(user);
+      return res.status(200).json({ IsSuccess: true, Data: [user], token: generatedToken, refreshToken: refreshToken, Messsage: "user successully found" });
+    }
+
+    // const userLoginIs = new userLogin({
+    //   userName: userName,
+    //   password: password
+    // });
+
+    // await userLoginIs.save();
+
+    const userIs = new userSchema({
+      name: name,
+      email: email,
+      mobileNo: mobileNo,
+      role: role,
+      password: password
+    });
+
+    await userIs.save();
+
+    let user = {
+      _id: userIs._id,
+      timestamp: Date.now()
+    }
+    const { generatedToken, refreshToken } = await generateAccessToken(user);
+    return res.status(200).json({ IsSuccess: true, Data: [user], token: generatedToken, refreshToken: refreshToken, Messsage: "user successfully signed up" });
+  } catch (error) {
+    return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+  }
+})
+router.post('/storeData', async (req, res) => {
+  const data = req.body;
+
+  let addData = new bodySchema({
+    data: data
+  });
+  await addData.save();
+  return res.status(200).json({ status: 0 })
 })
 // address: address,
 //   city: city,
@@ -150,6 +218,15 @@ router.post('/addKyc', authenticateToken, async (req, res, next) => {
       return res.status(200).json({ IsSuccess: true, Data: user, role: checkExist[0].role, Messsage: "kyc detail added" });
     }
     return res.status(404).json({ IsSuccess: true, Data: [], Messsage: "user not found" });
+  } catch (error) {
+    return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+  }
+})
+router.post('/signInWithGoogle', async (req, res, next) => {
+  try {
+    const { token } = req.body;
+
+    verify(token).catch(console.error);
   } catch (error) {
     return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
   }
@@ -281,4 +358,19 @@ router.get('/wallet', authenticateToken, async (req, res) => {
 router.post('/refresh-token', generateRefreshToken(), async (req, res, next) => {
   console.log("api called");
 })
+
+
+async function verify(token) {
+  const ticket = await client.verifyIdToken({
+    idToken: token,
+    audience: CLIENT_ID,  // Specify the CLIENT_ID of the app that accesses the backend
+    // Or, if multiple clients access the backend:
+    //[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
+  });
+  const payload = ticket.getPayload();
+  const userid = payload['sub'];
+  // If request specified a G Suite domain:
+  // const domain = payload['hd'];
+}
+
 module.exports = router;
