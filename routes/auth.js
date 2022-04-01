@@ -83,7 +83,7 @@ router.post('/signUpWithGoogle', async (req, res, next) => {
         console.log(req.body)
         const { idToken } = req.body;
         if (idToken == undefined) {
-            return res.status(401).json({ isSuccess: false, data: null, messsage: "please check id token in request" });
+            return res.status(401).json({ isSuccess: false, data: null, message: "please check id token in request" });
         }
         let checkRevoked = true;
         getAuth()
@@ -111,7 +111,7 @@ router.post('/signUpWithGoogle', async (req, res, next) => {
                     }
 
                     const { generatedToken, refreshToken } = await generateAccessToken(user);
-                    return res.status(200).json({ isSuccess: true, data: { user: { email: checkExist[0].email, name: checkExist[0].name, id: checkExist[0]._id, role: checkExist[0].role }, token: generatedToken, refreshToken: refreshToken }, messsage: "user successully found" });
+                    return res.status(200).json({ isSuccess: true, data: { user: { email: checkExist[0].email, name: checkExist[0].name, id: checkExist[0]._id, role: checkExist[0].role }, token: generatedToken, refreshToken: refreshToken }, message: "user successully found" });
                 }
 
                 // const userLoginIs = new userLogin({
@@ -136,17 +136,17 @@ router.post('/signUpWithGoogle', async (req, res, next) => {
                     timestamp: Date.now()
                 }
                 const { generatedToken, refreshToken } = await generateAccessToken(user);
-                return res.status(200).json({ isSuccess: true, data: { user: { email: userIs.email, name: userIs.name, id: userIs._id, role: userIs.role }, token: generatedToken, refreshToken: refreshToken }, messsage: "user successfully signed up" });
+                return res.status(200).json({ isSuccess: true, data: { user: { email: userIs.email, name: userIs.name, id: userIs._id, role: userIs.role }, token: generatedToken, refreshToken: refreshToken }, message: "user successfully signed up" });
             })
             .catch((error) => {
                 console.log(error.message)
                 if (error.code == 'auth/id-token-revoked') {
                     console.log("token is revoked")
-                    return res.status(401).json({ isSuccess: false, data: null, messsage: "user revoked app permissions" });
+                    return res.status(401).json({ isSuccess: false, data: null, message: "user revoked app permissions" });
                     // Token has been revoked   . Inform the user to reauthenticate or signOut() the user.
                 } else {
                     console.log("token is invalid")
-                    return res.status(401).json({ isSuccess: false, data: null, messsage: "invalid token" });
+                    return res.status(401).json({ isSuccess: false, data: null, message: "invalid token" });
                     // Token is invalid.
                 }
             });
@@ -154,7 +154,7 @@ router.post('/signUpWithGoogle', async (req, res, next) => {
 
 
     } catch (error) {
-        return res.status(500).json({ isSuccess: false, data: null, messsage: error.message || "Having issue is server" })
+        return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
     }
 })
 router.post('/signUpGoogleToken', async function (req, res) {
