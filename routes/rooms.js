@@ -75,7 +75,7 @@ router.post('/100ms-events', async (req, res) => {
         res.send("success")
     }
     catch (err) {
-        return res.status(500).json({ IsSuccess: false, Data: [], Message: err.message || "Having issue is server" })
+        return res.status(500).json({ isSuccess: false, data: null, message: err.message || "Having issue is server" })
     }
 })
 router.post('/trigger-event', async (req, res) => {
@@ -113,10 +113,10 @@ router.post('/trigger-event', async (req, res) => {
             });
             t2 = Date.now();
             console.log(t2 - t1);
-            res.status(200).json({ IsSuccess: true, data: allSymbol, Message: "Data found" })
+            res.status(200).json({ isSuccess: true, data: allSymbol, message: "Data found" })
         }
         else {
-            res.status(200).json({ IsSuccess: true, data: [], Message: "Data Not Found" })
+            res.status(200).json({ isSuccess: false, data: null, message: "Data Not Found" })
         }
     }
     catch (err) {
@@ -139,15 +139,15 @@ router.post('/createRoom', authenticateToken, checkRole(["host"]), async (req, r
             });
 
             await roomIs.save();
-            return res.status(200).json({ IsSuccess: true, Data: [roomIs], Messsage: "New Room Created Successfully" });
+            return res.status(200).json({ isSuccess: true, data: { userId: req.user._id, roomDetails: roomIs }, message: "New Room Created Successfully" });
         }
         else {
-            return res.status(400).json({ IsSuccess: true, Data: [], Messsage: "cannot create room right now try after some time" });
+            return res.status(400).json({ isSuccess: false, data: null, message: "cannot create room right now try after some time" });
         }
         // await roomIs.save();
     }
     catch (err) {
-        return res.status(500).json({ IsSuccess: false, Data: [], Message: err.message || "Having issue is server" })
+        return res.status(500).json({ isSuccess: false, data: null, message: err.message || "Having issue is server" })
     }
 })
 router.post('/getMyRooms', authenticateToken, checkRole(["host"]), async (req, res) => {
@@ -162,13 +162,13 @@ router.post('/getMyRooms', authenticateToken, checkRole(["host"]), async (req, r
         ]);
 
         if (getRooms.length == 0) {
-            return res.status(404).json({ IsSuccess: true, Data: [], Messsage: "no any room found" });
+            return res.status(404).json({ isSuccess: false, data: null, messsage: "no any room found" });
         }
 
-        return res.status(200).json({ IsSuccess: true, Data: getRooms, Messsage: "All Previos Rooms Found" });
+        return res.status(200).json({ isSuccess: true, data: { userId: req.user._id, roomDetails: getRooms }, messsage: "All Previos Rooms Found" });
     }
     catch (err) {
-        return res.status(500).json({ IsSuccess: false, Data: [], Message: err.message || "Having issue is server" })
+        return res.status(500).json({ isSuccess: false, data: null, messsage: err.message || "Having issue is server" })
     }
 })
 router.get('/getAllRooms', async (req, res) => {
@@ -183,13 +183,13 @@ router.get('/getAllRooms', async (req, res) => {
         ]);
 
         if (getRooms.length == 0) {
-            return res.status(404).json({ IsSuccess: true, Data: [], Messsage: "no any room found" });
+            return res.status(404).json({ isSuccess: false, data: null, messsage: "no any room found" });
         }
 
-        return res.status(200).json({ IsSuccess: true, Data: getRooms, Messsage: "All Previos Rooms Found" });
+        return res.status(200).json({ isSuccess: true, data: getRooms, messsage: "All Previos Rooms Found" });
     }
     catch (err) {
-        return res.status(500).json({ IsSuccess: false, Data: [], Message: err.message || "Having issue is server" })
+        return res.status(500).json({ isSuccess: false, data: null, messsage: err.message || "Having issue is server" })
     }
 })
 

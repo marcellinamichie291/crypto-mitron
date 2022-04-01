@@ -26,7 +26,7 @@ function generateRefreshToken() {
                 timestamp: Date.now()
             })
             // console.log(accessToken)
-            res.json({ accessToken: accessToken });
+            return res.status(200).json({ isSuccess: true, data: { token: accessToken }, message: "Here is your token" });
             next();
         })
     }
@@ -47,7 +47,7 @@ function checkRole(roles) {
         ]);
 
         if (checkUser.length == 0) {
-            return res.status(403).json({ IsSuccess: true, Data: [], Messsage: "You does not have permission to access this feauture" });
+            return res.status(403).json({ isSuccess: true, data: null, message: "You does not have permission to access this feauture" });
         }
 
         next();
@@ -63,7 +63,7 @@ function authenticateToken(req, res, next) {
     if (token == null) return res.sendStatus(401)
 
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-        if (err) return res.status(403).json({ Message: "JWT Token Expired" });
+        if (err) return res.status(403).json({ isSuccess: false, data: null, message: "JWT Token Expired" });
         // console.log(user);
         req.user = user
         next()

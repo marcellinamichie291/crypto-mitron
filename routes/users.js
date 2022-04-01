@@ -33,7 +33,7 @@ router.post('/signUp', async (req, res, next) => {
     ]);
 
     if (checkExist.length > 0) {
-      return res.status(409).json({ IsSuccess: true, Data: [], Messsage: "user already exist" });
+      return res.status(409).json({ isSuccess: false, data: null, messsage: "user already exist" });
     }
 
     // const userLoginIs = new userLogin({
@@ -58,63 +58,12 @@ router.post('/signUp', async (req, res, next) => {
       mobileNo: mobileNo
     }
 
-    return res.status(200).json({ IsSuccess: true, Data: [user], Messsage: "user successfully signed up" });
+    return res.status(200).json({ isSuccess: true, data: { user: { id: userIs._id, name: userIs.name, role: userIs.role, email: userIs.email } }, message: "user successfully signed up" });
   } catch (error) {
-    return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+    return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
   }
 })
-router.post('/signUpWithGoogle', async (req, res, next) => {
-  try {
-    const { name, email, password, mobileNo, role } = req.body;
 
-    let checkExist = await userSchema.aggregate([
-      {
-        $match: {
-          $or: [
-            { mobileNo: mobileNo },
-            { email: email }
-          ]
-        }
-      }
-    ]);
-
-    if (checkExist.length > 0) {
-      let user = {
-        _id: checkExist[0]._id,
-        timestamp: Date.now()
-      }
-
-      const { generatedToken, refreshToken } = await generateAccessToken(user);
-      return res.status(200).json({ IsSuccess: true, Data: [user], token: generatedToken, refreshToken: refreshToken, Messsage: "user successully found" });
-    }
-
-    // const userLoginIs = new userLogin({
-    //   userName: userName,
-    //   password: password
-    // });
-
-    // await userLoginIs.save();
-
-    const userIs = new userSchema({
-      name: name,
-      email: email,
-      mobileNo: mobileNo,
-      role: role,
-      password: password
-    });
-
-    await userIs.save();
-
-    let user = {
-      _id: userIs._id,
-      timestamp: Date.now()
-    }
-    const { generatedToken, refreshToken } = await generateAccessToken(user);
-    return res.status(200).json({ IsSuccess: true, Data: [user], token: generatedToken, refreshToken: refreshToken, Messsage: "user successfully signed up" });
-  } catch (error) {
-    return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
-  }
-})
 router.post('/storeData', async (req, res) => {
   const data = req.body;
 
@@ -192,7 +141,7 @@ router.post('/addKyc', authenticateToken, async (req, res, next) => {
         }
       ])
       if (checkKyc.length > 0) {
-        return res.status(409).json({ IsSuccess: true, Data: [], Messsage: "kyc detail already submitted" });
+        return res.status(409).json({ isSuccess: false, data: null, messsage: "kyc detail already submitted" });
       }
       let kyc = new userKyc({
         address: address,
@@ -215,26 +164,18 @@ router.post('/addKyc', authenticateToken, async (req, res, next) => {
       // }
       // const { generatedToken, refreshToken } = await generateAccessToken(user);
       // console.log(generatedToken + refreshToken);
-      return res.status(200).json({ IsSuccess: true, Data: user, role: checkExist[0].role, Messsage: "kyc detail added" });
+      return res.status(200).json({ isSuccess: true, data: { userId: userId, kycDetails: kyc }, message: "kyc detail added" });
     }
-    return res.status(404).json({ IsSuccess: true, Data: [], Messsage: "user not found" });
+    return res.status(404).json({ isSuccess: false, data: null, messsage: "user not found" });
   } catch (error) {
-    return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+    return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
   }
 })
-router.post('/signInWithGoogle', async (req, res, next) => {
+router.post('/updateUser', authenticateToken, async (req, res, next) => {
   try {
-    const { token } = req.body;
+    const { name, email, password, mobileNo } = req.body;
 
-    verify(token).catch(console.error);
-  } catch (error) {
-    return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
-  }
-})
-router.post('/updateUser', async (req, res, next) => {
-  try {
-    const { name, email, password, mobileNo, userId } = req.body;
-
+    const userId = req.user._id;
     let checkExist = await userSchema.aggregate([
       {
         $match: {
@@ -244,7 +185,7 @@ router.post('/updateUser', async (req, res, next) => {
     ]);
 
     if (checkExist.length == 0) {
-      return res.status(404).json({ IsSuccess: true, Data: [], Messsage: "user not found" });
+      return res.status(404).json({ isSuccess: false, data: null, messsage: "user not found" });
     }
     const userIs = {
       name: name != undefined && name != "" ? name : checkExist[0].name,
@@ -254,9 +195,9 @@ router.post('/updateUser', async (req, res, next) => {
     };
 
     let updateUser = await userSchema.findByIdAndUpdate(userId, userIs, { new: true });
-    return res.status(200).json({ IsSuccess: true, Data: [updateUser], Messsage: "user details updated successfully" });
+    return res.status(200).json({ isSuccess: true, data: { user: { id: updateUser._id, email: updateUser.email, role: updateUser.role, name: updateUser.name } }, messsage: "user details updated successfully" });
   } catch (error) {
-    return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+    return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
   }
 })
 router.post('/login', async (req, res, next) => {
@@ -273,7 +214,7 @@ router.post('/login', async (req, res, next) => {
 
     if (checkExist.length > 0) {
       if (checkExist[0].password != password) {
-        return res.status(401).json({ IsSuccess: true, Data: [], Messsage: "Incorrect Password" });
+        return res.status(401).json({ isSuccess: false, data: null, messsage: "Incorrect Password" });
       }
       let user = {
         _id: checkExist[0]._id,
@@ -282,11 +223,12 @@ router.post('/login', async (req, res, next) => {
 
       const { generatedToken, refreshToken } = await generateAccessToken(user);
       // console.log(generatedToken + refreshToken);
-      return res.status(200).json({ IsSuccess: true, Data: checkExist, role: checkExist[0].role, token: generatedToken, refreshToken: refreshToken, Messsage: "user found" });
+      return res.status(200).json({ isSuccess: true, data: { user: { email: checkExist[0].email, name: checkExist[0].name, id: checkExist[0]._id, role: checkExist[0].role }, token: generatedToken, refreshToken: refreshToken }, messsage: "user successully found" });
+      // return res.status(200).json({ isSuccess: true, data: checkExist, role: checkExist[0].role, token: generatedToken, refreshToken: refreshToken, Messsage: "user found" });
     }
-    return res.status(404).json({ IsSuccess: true, Data: [], Messsage: "user not found" });
+    return res.status(404).json({ isSuccess: false, data: null, message: "user not found" });
   } catch (error) {
-    return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+    return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
   }
 })
 router.post('/updateWallet', authenticateToken, async (req, res) => {
@@ -319,10 +261,10 @@ router.post('/updateWallet', authenticateToken, async (req, res) => {
       updatedAt: storeDeposit.updatedAt,
       id: storeDeposit._id
     }
-    return res.status(200).json({ IsSuccess: true, Data: [deposit], Messsage: "your trasaction stored" });
+    return res.status(200).json({ isSuccess: true, data: { userId: userId, transactionDetails: deposit }, messsage: "your trasaction stored" });
   }
   catch (error) {
-    return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+    return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
   }
 })
 router.get('/wallet', authenticateToken, async (req, res) => {
@@ -347,12 +289,12 @@ router.get('/wallet', authenticateToken, async (req, res) => {
     ]);
 
     if (getTrans.length > 0) {
-      return res.status(200).json({ IsSuccess: true, Data: getTrans, Messsage: "transaction found" });
+      return res.status(200).json({ isSuccess: true, data: { userId: userId, transactionDetails: getTrans }, messsage: "transaction found" });
     }
-    return res.status(404).json({ IsSuccess: true, Data: [], Messsage: "no any transaction found" });
+    return res.status(404).json({ isSuccess: false, data: null, messsage: "no any transaction found" });
   }
   catch (error) {
-    return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+    return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
   }
 })
 router.post('/refresh-token', generateRefreshToken(), async (req, res, next) => {

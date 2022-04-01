@@ -28,11 +28,11 @@ router.get('/get', authenticateToken, async function (req, res) {
         ]);
         if (getAllTransactions.length > 0) {
             let getResults = await toWalletRes(userId, getAllTransactions);
-            return res.status(200).json({ IsSuccess: true, Data: getResults, Messsage: "Transaction Found successfully" });
+            return res.status(200).json({ isSuccess: true, data: getResults, message: "Transaction Found successfully" });
         }
-        return res.status(404).json({ IsSuccess: true, Data: [], Messsage: "No any transactions found" });
+        return res.status(404).json({ isSuccess: false, data: null, message: "No any transactions found" });
     } catch (error) {
-        return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+        return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
     }
 });
 
@@ -57,11 +57,11 @@ router.get('/getDetailsSlow', authenticateToken, async function (req, res) {
             const finalToken = await getAssetWithUSDTINR(getResults.tokens)
             console.log("calculatedDone" + Date.now());
             // console.log(finalTokenPrice)
-            return res.status(200).json({ IsSuccess: true, Data: finalToken, Messsage: "Transaction Found successfully" });
+            return res.status(200).json({ isSuccess: true, data: finalToken, message: "Transaction Found successfully" });
         }
-        return res.status(404).json({ IsSuccess: true, Data: [], Messsage: "No any transactions found" });
+        return res.status(404).json({ isSuccess: false, data: null, message: "No any transactions found" });
     } catch (error) {
-        return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+        return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
     }
 });
 
@@ -70,15 +70,16 @@ router.get('/getDetails', authenticateToken, async function (req, res) {
         // var userId = req.params.userId;
 
         const userId = req.user._id;
+        console.log("data find first" + Date.now());
         let getDebitTransactions = await transactionSchema.aggregate([
-            {
-                $addFields: {
-                    debitAmountIs: { $subtract: [0, '$debitAmount'] }
-                }
-            },
             {
                 $match: {
                     userId: mongoose.Types.ObjectId(userId)
+                }
+            },
+            {
+                $addFields: {
+                    debitAmountIs: { $subtract: [0, '$debitAmount'] }
                 }
             },
             {
@@ -89,6 +90,7 @@ router.get('/getDetails', authenticateToken, async function (req, res) {
                 }
             }
         ]);
+        console.log("data find second" + Date.now());
         let getCreditTransactions = await transactionSchema.aggregate([
             {
                 $match: {
@@ -105,11 +107,17 @@ router.get('/getDetails', authenticateToken, async function (req, res) {
         ]);
 
         if (getCreditTransactions.length > 0 && getDebitTransactions.length > 0) {
+            const balance = await getWalletBalance(userId);
             console.log("data find" + Date.now());
             const results = [...getCreditTransactions, ...getDebitTransactions];
             const resultIs = results.reduce(function (res, value) {
                 if (!res[value._id.token]) {
-                    res[value._id.token] = 0
+                    if (value._id.token == "INR") {
+                        res[value._id.token] = balance
+                    } else {
+                        res[value._id.token] = 0
+                    }
+
                 }
                 res[value._id.token] += value.total;
                 return res;
@@ -123,11 +131,11 @@ router.get('/getDetails', authenticateToken, async function (req, res) {
             const finalToken = await getAssetWithUSDTINR(resultIs)
             console.log("calculatedDone" + Date.now());
             // console.log(finalTokenPrice)
-            return res.status(200).json({ IsSuccess: true, Data: finalToken, Messsage: "Transaction Found successfully" });
+            return res.status(200).json({ isSuccess: true, data: { userId: userId, ...finalToken }, message: "Transaction Found successfully" });
         }
-        return res.status(404).json({ IsSuccess: true, Data: [], Messsage: "No any transactions found" });
+        return res.status(404).json({ isSuccess: false, data: null, message: "No any transactions found" });
     } catch (error) {
-        return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+        return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
     }
 });
 

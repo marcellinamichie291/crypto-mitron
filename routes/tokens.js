@@ -44,9 +44,9 @@ router.get('/getTokenDetails', async (req, res) => {
             banners: constants.BANNER,
             tokens: tokenIs
         }
-        return res.status(200).json({ IsSuccess: true, Data: resp, Messsage: "All Token Details Fetched Successfully" });
+        return res.status(200).json({ isSuccess: true, data: resp, messsage: "All Token Details Fetched Successfully" });
     } catch (error) {
-        return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+        return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
     }
 })
 router.get('/getTopGainers', async (req, res) => {
@@ -89,9 +89,9 @@ router.get('/getTopGainers', async (req, res) => {
             banners: constants.BANNER,
             tokens: tokensData
         }
-        return res.status(200).json({ IsSuccess: true, Data: resp, Messsage: "top gainers by 24 hour change" });
+        return res.status(200).json({ isSuccess: true, data: resp, messsage: "top gainers by 24 hour change" });
     } catch (error) {
-        return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+        return res.status(500).json({ isSuccess: false, data: [], message: error.message || "Having issue is server" })
     }
 })
 router.get('/getTopLoosers', async (req, res) => {
@@ -129,9 +129,9 @@ router.get('/getTopLoosers', async (req, res) => {
             tokens: tokensData
         }
         // resp = tokenIs.sort((a, b) => parseFloat(b.change_24h_per) - parseFloat(a.change_24h_per));
-        return res.status(200).json({ IsSuccess: true, Data: resp, Messsage: "top loosers by 24 hour change" });
+        return res.status(200).json({ isSuccess: true, data: resp, messsage: "top loosers by 24 hour change" });
     } catch (error) {
-        return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+        return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
     }
 })
 router.get('/getTokens', async (req, res) => {
@@ -142,16 +142,16 @@ router.get('/getTokens', async (req, res) => {
             var buf = Buffer.from(JSON.stringify(resp));
             const responseIs = await uploadJson(buf)
             // console.log(responseIs)
-            return res.status(200).json({ IsSuccess: true, Data: resp, Messsage: "top loosers by 24 hour change" });
+            return res.status(200).json({ isSuccess: true, data: resp, messsage: "top loosers by 24 hour change" });
         }
         else {
-            return res.status(500).json({ IsSuccess: false, Data: [], Message: response.Message || "Having issue is server" })
+            return res.status(500).json({ isSuccess: false, data: [], messsage: response.Message || "Having issue is server" })
         }
 
         // resp = tokenIs.sort((a, b) => parseFloat(b.change_24h_per) - parseFloat(a.change_24h_per));
 
     } catch (error) {
-        return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+        return res.status(500).json({ isSuccess: false, data: [], messsage: error.message || "Having issue is server" })
     }
 })
 //for upload all token data to s3 every 10 second

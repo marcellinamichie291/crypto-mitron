@@ -84,12 +84,12 @@ router.post('/token-generate-app', async (req, res) => {
           jwtid: uuid4()
         }
       );
-      return res.status(200).json({ IsSuccess: true, Data: token, Messsage: "no user found" });
+      return res.status(200).json({ isSuccess: true, data: token, messsage: "use found and token generated" });
     }
-    return res.status(404).json({ IsSuccess: true, Data: [], Messsage: "no user found" });
+    return res.status(404).json({ isSuccess: false, data: null, messsage: "no user found" });
   }
   catch (error) {
-    return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+    return res.status(500).json({ isSuccess: false, data: null, messsage: error.message || "Having issue is server" })
   }
 })
 
@@ -105,30 +105,31 @@ router.post('/create', authenticateToken, async function (req, res) {
     // return;
     if (debitToken != "INR") {
       const userWalletBalance = await getWalletBalanceV1(userId);
-      console.log(userWalletBalance);
-      return
-      if (userWalletBalance.debitToken < debitAmount) {
-        return res.status(400).json({ IsSuccess: true, Data: [], Messsage: "User does not have sufficient balance" });
+      // console.log(userWalletBalance);
+      // return
+      if (userWalletBalance.debitToken == undefined) {
+        return res.status(400).json({ isSuccess: false, data: null, message: "User does not have sufficient balance" });
       }
+      if (userWalletBalance.debitToken < debitAmount) {
+        return res.status(400).json({ isSuccess: false, data: null, message: "User does not have sufficient balance" });
+      }
+
     }
     else {
       const balanceIs = await getWalletBalanceMongo(userId);
-      if (balanceIs.length > 0) {
-        if (balanceIs[0].totalAmount < debitAmount) {
-          return res.status(400).json({ IsSuccess: true, Data: [], Messsage: "User does not have sufficient balance" });
-        }
+      // console.log(balanceIs)
+      if (balanceIs[0].totalAmount < debitAmount) {
+        return res.status(400).json({ isSuccess: false, data: null, message: "User does not have sufficient balance" });
       }
-      else {
-        return res.status(400).json({ IsSuccess: true, Data: [], Messsage: "User does not have sufficient balance" });
-      }
+
     }
 
     let createTransaction = new transactionSchema({ userId: userId, debitToken: debitToken, debitAmount: debitAmount, creditToken: creditToken, creditAmount: checkQuantityIs, transactionDate: transactionDate, status: status });
 
     await createTransaction.save();
-    return res.status(200).json({ IsSuccess: true, Data: [createTransaction], Messsage: "Transaction stored successfully" });
+    return res.status(200).json({ isSuccess: true, data: { userId: userId, transactions: createTransaction }, message: "Transaction stored successfully" });
   } catch (error) {
-    return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+    return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
   }
 })
 
@@ -164,11 +165,11 @@ router.get('/get/', authenticateToken, async function (req, res) {
         transactions: getAllTransactions
       }
       // let getResultsFor = toTransRes(userId, getAllTransactions);
-      return res.status(200).json({ IsSuccess: true, Data: getResults, Messsage: "Transaction stored successfully" });
+      return res.status(200).json({ isSuccess: true, data: getResults, messsage: "Transaction stored successfully" });
     }
-    return res.status(404).json({ IsSuccess: true, Data: [], Messsage: "No any transactions found" });
+    return res.status(404).json({ isSuccess: true, data: null, messsage: "No any transactions found" });
   } catch (error) {
-    return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+    return res.status(500).json({ isSuccess: false, data: null, messsage: error.message || "Having issue is server" })
   }
 });
 router.get('/wallet/', authenticateToken, async function (req, res) {
@@ -185,11 +186,12 @@ router.get('/wallet/', authenticateToken, async function (req, res) {
     ]);
     if (getAllTransactions.length > 0) {
       let getResults = await toWalletRes(userId, getAllTransactions);
-      return res.status(200).json({ IsSuccess: true, Data: getResults, Messsage: "Transaction Found successfully" });
+      // console.log(getResultIs);
+      return res.status(200).json({ isSuccess: true, data: getResults, messsage: "Transaction Found successfully" });
     }
-    return res.status(404).json({ IsSuccess: true, Data: [], Messsage: "No any transactions found" });
+    return res.status(404).json({ isSuccess: false, data: null, messsage: "No any transactions found" });
   } catch (error) {
-    return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+    return res.status(500).json({ isSuccess: false, data: null, messsage: error.message || "Having issue is server" })
   }
 });
 router.get('/wallet/v1/', authenticateToken, async function (req, res) {
@@ -208,47 +210,47 @@ router.get('/wallet/v1/', authenticateToken, async function (req, res) {
       let getResults = await toWalletRes(userId, getAllTransactions);
       const finalToken = await getAssetWithUSDTINR(getResults.tokens)
       // console.log(finalTokenPrice)
-      return res.status(200).json({ IsSuccess: true, Data: finalToken, Messsage: "Transaction Found successfully" });
+      return res.status(200).json({ isSuccess: true, data: finalToken, messsage: "Transaction Found successfully" });
     }
-    return res.status(404).json({ IsSuccess: true, Data: [], Messsage: "No any transactions found" });
+    return res.status(404).json({ isSuccess: false, data: null, messsage: "No any transactions found" });
   } catch (error) {
-    return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+    return res.status(500).json({ isSuccess: false, data: null, messsage: error.message || "Having issue is server" })
   }
 });
 
-router.post('/buyFromInr', async function (req, res) {
-  try {
+// router.post('/buyFromInr', async function (req, res) {
+//   try {
 
-    const { amount, creditToken } = req.body;
+//     const { amount, creditToken } = req.body;
 
-    const quantity = calculateQuantity(amount, creditToken);
+//     const quantity = calculateQuantity(amount, creditToken);
 
-    if (quantity > 0) {
-      const responseIs = await binance.marketBuy("USDBTC", quantity.toFixed(10), (error, response) => {
-        console.info("Market Buy response", response);
-        console.info("order id: " + response.orderId);
-        console.log(error)
-        // Now you can limit sell with a stop loss, etc.
-      });
-      return res.status(200).json({ IsSuccess: true, Data: quantity.toFixed(10), result: responseIs, Messsage: "Transaction stored successfully" });
-    }
-    return res.status(200).json({ IsSuccess: true, Data: [], Messsage: "Transaction stored successfully" });
-  } catch (error) {
-    return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
-  }
-})
+//     if (quantity > 0) {
+//       const responseIs = await binance.marketBuy("USDBTC", quantity.toFixed(10), (error, response) => {
+//         console.info("Market Buy response", response);
+//         console.info("order id: " + response.orderId);
+//         console.log(error)
+//         // Now you can limit sell with a stop loss, etc.
+//       });
+//       return res.status(200).json({ isSuccess: true, data: quantity.toFixed(10), result: responseIs, messsage: "Transaction stored successfully" });
+//     }
+//     return res.status(200).json({ isSuccess: true, data: null, messsage: "Transaction stored successfully" });
+//   } catch (error) {
+//     return res.status(500).json({ isSuccess: false, data: null, messsage: error.message || "Having issue is server" })
+//   }
+// })
 
-router.post('/convertCurrency', async function (req, res) {
-  try {
-    const { price, fromToken, toToken } = req.body;
+// router.post('/convertCurrency', async function (req, res) {
+//   try {
+//     const { price, fromToken, toToken } = req.body;
 
-    const quantity = convertCurrency(fromToken, price, toToken);
+//     const quantity = convertCurrency(fromToken, price, toToken);
 
-    return res.status(200).json({ IsSuccess: true, Data: [], Messsage: "Transaction stored successfully" });
-  } catch (error) {
-    return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
-  }
-})
+//     return res.status(200).json({ isSuccess: true, data: null, messsage: "Transaction stored successfully" });
+//   } catch (error) {
+//     return res.status(500).json({ isSuccess: false, data: null, messsage: error.message || "Having issue is server" })
+//   }
+// })
 
 module.exports = router;
 async function getAssetWithUSDTINR(tokenIs) {
@@ -458,9 +460,18 @@ async function getWalletBalanceMongo(userId) {
   if (getBalance.length > 0) {
     return getBalance;
   }
-  return getBalance;
+  return [{ _id: {}, totalAmount: 0, count: 0 }];
 }
+
+//for get token and quantities
 async function getWalletBalanceV1(userId) {
+  console.log("function start time  " + Date.now())
+  const balanceIs = await getWalletBalanceMongo(userId);
+  console.log("wallet balance  " + Date.now())
+  // console.log(balanceIs)
+  balanceUser = balanceIs[0].totalAmount;
+  // console.log(balanceUser)
+  console.log("before mongo  " + Date.now())
   let getDebitTransactions = await transactionSchema.aggregate([
     {
       $addFields: {
@@ -494,20 +505,27 @@ async function getWalletBalanceV1(userId) {
       }
     }
   ]);
-
+  console.log("after mongo  " + Date.now())
   if (getCreditTransactions.length > 0 && getDebitTransactions.length > 0) {
+    console.log("reduceing start  " + Date.now())
     console.log("data find" + Date.now());
     const results = [...getCreditTransactions, ...getDebitTransactions];
     const resultIs = results.reduce(function (res, value) {
       if (!res[value._id.token]) {
-        res[value._id.token] = 0
+        if (value._id.token == "INR") {
+          res[value._id.token] = balanceUser
+        }
+        else {
+          res[value._id.token] = 0
+        }
       }
       res[value._id.token] += value.total;
+      console.log("computing start  " + Date.now())
       return res;
     }, {});
     return resultIs;
   }
-  return {};
+  return {}
 }
 //This responds a POST request for the homepage
 // app.post('/users/insert', function (req, res) {
