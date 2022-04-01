@@ -85,7 +85,7 @@ router.post('/signUpWithGoogle', async (req, res, next) => {
         getAuth()
             .verifyIdToken(idToken, checkRevoked)
             .then(async (payload) => {
-                console.log(payload)
+                // console.log(payload)
                 console.log("token is valid in payload")
                 // Token is valid.
                 const { name, email, password, mobileNo, role } = payload;
@@ -107,7 +107,7 @@ router.post('/signUpWithGoogle', async (req, res, next) => {
                     }
 
                     const { generatedToken, refreshToken } = await generateAccessToken(user);
-                    return res.status(200).json({ IsSuccess: true, Data: [user], token: generatedToken, refreshToken: refreshToken, Messsage: "user successully found" });
+                    return res.status(200).json({ IsSuccess: true, Data: [{ email: checkExist[0].email, name: checkExist[0].name, id: checkExist[0]._id }], token: generatedToken, refreshToken: refreshToken, Messsage: "user successully found" });
                 }
 
                 // const userLoginIs = new userLogin({
@@ -132,7 +132,7 @@ router.post('/signUpWithGoogle', async (req, res, next) => {
                     timestamp: Date.now()
                 }
                 const { generatedToken, refreshToken } = await generateAccessToken(user);
-                return res.status(200).json({ IsSuccess: true, Data: [user], token: generatedToken, refreshToken: refreshToken, Messsage: "user successfully signed up" });
+                return res.status(200).json({ IsSuccess: true, Data: [{ email: userIs.email, name: userIs.name, id: userIs._id }], token: generatedToken, refreshToken: refreshToken, Messsage: "user successfully signed up" });
             })
             .catch((error) => {
                 console.log(error.message)
