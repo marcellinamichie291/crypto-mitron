@@ -80,7 +80,11 @@ admin.initializeApp({
 // console.log(authIs)
 router.post('/signUpWithGoogle', async (req, res, next) => {
     try {
+        console.log(req.body)
         const { idToken } = req.body;
+        if (idToken == undefined) {
+            return res.status(401).json({ isSuccess: false, data: null, messsage: "please check id token in request" });
+        }
         let checkRevoked = true;
         getAuth()
             .verifyIdToken(idToken, checkRevoked)

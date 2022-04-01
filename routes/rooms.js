@@ -165,7 +165,7 @@ router.post('/getMyRooms', authenticateToken, checkRole(["host"]), async (req, r
             return res.status(404).json({ isSuccess: false, data: null, messsage: "no any room found" });
         }
 
-        return res.status(200).json({ isSuccess: true, data: { userId: req.user._id, roomDetails: getRooms }, messsage: "All Previos Rooms Found" });
+        return res.status(200).json({ isSuccess: true, data: { userId: req.user._id, roomDetails: getRooms }, messsage: "All Previous Rooms Found" });
     }
     catch (err) {
         return res.status(500).json({ isSuccess: false, data: null, messsage: err.message || "Having issue is server" })
