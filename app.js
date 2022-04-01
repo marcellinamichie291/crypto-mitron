@@ -22,15 +22,6 @@ var app = express();
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
-app.use(session({
-  key: "mysite.sid.uid.whatever",
-  secret: process.env.ACCESS_TOKEN_SECRET,
-  cookie: {
-    maxAge: 2678400000 // 31 days
-  },
-}))
-app.use(passport.initialize());
-app.use(passport.session());
 
 app.get('/success', (req, res) => res.send(userProfile));
 app.get('/error', (req, res) => res.send("error logging in"));
@@ -64,12 +55,5 @@ app.use(function (err, req, res, next) {
   // render the error page
   res.status(err.status || 500);
   res.render('error');
-});
-passport.serializeUser(function (user, cb) {
-  cb(null, user);
-});
-
-passport.deserializeUser(function (obj, cb) {
-  cb(null, obj);
 });
 module.exports = app;

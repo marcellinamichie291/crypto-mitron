@@ -10,11 +10,17 @@ router.get('/', function (req, res, next) {
 });
 var admin = require("firebase-admin");
 const { getAuth } = require("firebase-admin/auth");
+const { getApp } = require('firebase-admin/app');
+const userSchema = require('../models/userModel')
 var serviceAccount = require("../files/serviceAccountKey.json");
+const { generateAccessToken, generateRefreshToken, authenticateToken } = require('../middleware/auth');
+// console.log(serviceAccount)
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 });
+
+// console.log(admin.name)
 // const { google } = require('googleapis');
 // const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 // const GOOGLE_CLIENT_ID = "525460832991-afsdffsq6liot36lmlfpuk6ir9fldtdn.apps.googleusercontent.com"
@@ -69,26 +75,87 @@ admin.initializeApp({
 //         }
 //     });
 // })
+// console.log(getApp().name);
+// const authIs = getAuth();
+// console.log(authIs)
+router.post('/signUpWithGoogle', async (req, res, next) => {
+    try {
+        const { idToken } = req.body;
+        let checkRevoked = true;
+        getAuth()
+            .verifyIdToken(idToken, checkRevoked)
+            .then(async (payload) => {
+                console.log(payload)
+                console.log("token is valid in payload")
+                // Token is valid.
+                const { name, email, password, mobileNo, role } = payload;
+                let checkExist = await userSchema.aggregate([
+                    {
+                        $match: {
+                            $or: [
+                                { mobileNo: mobileNo },
+                                { email: email }
+                            ]
+                        }
+                    }
+                ]);
+
+                if (checkExist.length > 0) {
+                    let user = {
+                        _id: checkExist[0]._id,
+                        timestamp: Date.now()
+                    }
+
+                    const { generatedToken, refreshToken } = await generateAccessToken(user);
+                    return res.status(200).json({ IsSuccess: true, Data: [user], token: generatedToken, refreshToken: refreshToken, Messsage: "user successully found" });
+                }
+
+                // const userLoginIs = new userLogin({
+                //   userName: userName,
+                //   password: password
+                // });
+
+                // await userLoginIs.save();
+
+                const userIs = new userSchema({
+                    name: name,
+                    email: email,
+                    mobileNo: mobileNo,
+                    role: role,
+                    password: password
+                });
+
+                await userIs.save();
+
+                let user = {
+                    _id: userIs._id,
+                    timestamp: Date.now()
+                }
+                const { generatedToken, refreshToken } = await generateAccessToken(user);
+                return res.status(200).json({ IsSuccess: true, Data: [user], token: generatedToken, refreshToken: refreshToken, Messsage: "user successfully signed up" });
+            })
+            .catch((error) => {
+                console.log(error.message)
+                if (error.code == 'auth/id-token-revoked') {
+                    console.log("token is revoked")
+                    return res.status(401).json({ IsSuccess: true, Data: [], Messsage: "user revoked app permissions" });
+                    // Token has been revoked   . Inform the user to reauthenticate or signOut() the user.
+                } else {
+                    console.log("token is invalid")
+                    return res.status(401).json({ IsSuccess: true, Data: [], Messsage: "invalid token" });
+                    // Token is invalid.
+                }
+            });
+
+
+
+    } catch (error) {
+        return res.status(500).json({ IsSuccess: false, Data: [], Message: error.message || "Having issue is server" })
+    }
+})
 router.post('/signUpGoogleToken', async function (req, res) {
     // idToken comes from the client app
-    const idToken = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjU4YjQyOTY2MmRiMDc4NmYyZWZlZmUxM2MxZWIxMmEyOGRjNDQyZDAiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI1MjU0NjA4MzI5OTEtaWgwdnMzbDQ4cGw2aWVrZjR0MzRmODR2cnQ0NW1pc3IuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI1MjU0NjA4MzI5OTEtYWZzZGZmc3E2bGlvdDM2bG1sZnB1azZpcjlmbGR0ZG4uYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDAxOTc1MTUyMjAyNjA4Njk3MTIiLCJlbWFpbCI6IndlYmRlY29kZTMzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJuYW1lIjoiV2ViIERlY29kZSIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS0vQU9oMTRHZ0xRVk5rSWNQd3lMV18tNVpLVzBwM2Rtc05CWW9sdnY2dHFIbnY9czk2LWMiLCJnaXZlbl9uYW1lIjoiV2ViIiwiZmFtaWx5X25hbWUiOiJEZWNvZGUiLCJsb2NhbGUiOiJlbi1HQiIsImlhdCI6MTY0ODcyODExNCwiZXhwIjoxNjQ4NzMxNzE0fQ.j10mgM2Ea7Z9mfr0QjgDyiUU6x4XXPaQWjdMN8Dt4wi7fSMPkgMIFo9ZzYTgW8aopZGvr_Vj7bYviU3z4aiqX5KdyhRcnC9gn648LooaeasAcADs8lhr_cvhLTkddknjR0bkjpD78SBZqz4mt-fcGuCuA15cG7dIRp-t3Isxnv9ZdtFFA6XAU4lqyz_Pkwq_GZX1oyKBaDHK5chDRGXmZNH9EcmkKuawgdDAOs1KDd6NvU"
-    let checkRevoked = true;
-    getAuth()
-        .verifyIdToken(idToken, checkRevoked)
-        .then((payload) => {
-            console.log(payload)
-            console.log("token is valid")
-            // Token is valid.
-        })
-        .catch((error) => {
-            console.log(error.message)
-            if (error.code == 'auth/id-token-revoked') {
-                console.log("token is revoked")
-                // Token has been revoked. Inform the user to reauthenticate or signOut() the user.
-            } else {
-                console.log("token is invalid")
-                // Token is invalid.
-            }
-        });
+    // const idToken = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjU4YjQyOTY2MmRiMDc4NmYyZWZlZmUxM2MxZWIxMmEyOGRjNDQyZDAiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI1MjU0NjA4MzI5OTEtaWgwdnMzbDQ4cGw2aWVrZjR0MzRmODR2cnQ0NW1pc3IuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI1MjU0NjA4MzI5OTEtYWZzZGZmc3E2bGlvdDM2bG1sZnB1azZpcjlmbGR0ZG4uYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDAxOTc1MTUyMjAyNjA4Njk3MTIiLCJlbWFpbCI6IndlYmRlY29kZTMzQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJuYW1lIjoiV2ViIERlY29kZSIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS0vQU9oMTRHZ0xRVk5rSWNQd3lMV18tNVpLVzBwM2Rtc05CWW9sdnY2dHFIbnY9czk2LWMiLCJnaXZlbl9uYW1lIjoiV2ViIiwiZmFtaWx5X25hbWUiOiJEZWNvZGUiLCJsb2NhbGUiOiJlbi1HQiIsImlhdCI6MTY0ODcyODExNCwiZXhwIjoxNjQ4NzMxNzE0fQ.j10mgM2Ea7Z9mfr0QjgDyiUU6x4XXPaQWjdMN8Dt4wi7fSMPkgMIFo9ZzYTgW8aopZGvr_Vj7bYviU3z4aiqX5KdyhRcnC9gn648LooaeasAcADs8lhr_cvhLTkddknjR0bkjpD78SBZqz4mt-fcGuCuA15cG7dIRp-t3Isxnv9ZdtFFA6XAU4lqyz_Pkwq_GZX1oyKBaDHK5chDRGXmZNH9EcmkKuawgdDAOs1KDd6NvU"
+
 })
 module.exports = router;
