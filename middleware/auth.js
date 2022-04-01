@@ -8,7 +8,7 @@ function generateRefreshToken() {
         const authHeader = req.headers.authorization;
         const refreshToken = authHeader && authHeader.split(' ')[1]
         // console.log(refreshToken);
-        if (refreshToken == null) return res.sendStatus(401)
+        if (refreshToken == null) return res.status(401).json({ isSuccess: false, data: null, message: "please send valid request" });
         let checkRefreshToken = await userRefToken.aggregate([
             {
                 $match: {
@@ -17,10 +17,10 @@ function generateRefreshToken() {
             }
         ]);
         if (checkRefreshToken.length == 0) {
-            return res.sendStatus(403)
+            return res.status(403).json({ isSuccess: false, data: null, message: "Token Expired or Invalid Token" });
         }
         jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
-            if (err) return res.sendStatus(403)
+            if (err) return res.status(403).json({ isSuccess: false, data: null, message: "Token Expired or Invalid Token" });
             const accessToken = await generateAccessTokenOnly({
                 _id: user._id,
                 timestamp: Date.now()
@@ -60,10 +60,10 @@ function authenticateToken(req, res, next) {
     // console.log(authHeader)
     const token = authHeader && authHeader.split(' ')[1] || req.signedCookies.access_token
     // console.log(token);
-    if (token == null) return res.sendStatus(401)
+    if (token == null) return res.status(401).json({ isSuccess: false, data: null, message: "please send valid request" });
 
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-        if (err) return res.status(403).json({ isSuccess: false, data: null, message: "JWT Token Expired" });
+        if (err) return res.status(403).json({ isSuccess: false, data: null, message: "Token Expired or Invalid Token" });
         // console.log(user);
         req.user = user
         next()
