@@ -105,6 +105,7 @@ router.post('/create', authenticateToken, async function (req, res) {
     // return;
     if (debitToken != "INR") {
       const userWalletBalance = await getWalletBalanceV1(userId);
+      // console.log("getWalletBalance")
       // console.log(userWalletBalance);
       // return
       if (userWalletBalance.debitToken == undefined) {

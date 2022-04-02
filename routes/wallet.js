@@ -154,8 +154,11 @@ async function getAssetWithUSDTINR(tokenIs) {
     //loop for finding usdt and inr prices
     for (i = 0; i < keys.length; i++) {
         token = keys[i] + "USDT";
+        console.log(token)
         // console.log(prices)
         if (token in prices) {
+            console.log("price is")
+            console.log(prices[token])
             USDT = prices[token] * tokenIs[keys[i]]
             INR = USDT * 75;
             usdt += USDT;
@@ -259,13 +262,13 @@ async function getWalletBalance(userId) {
     }
     return 0;
 }
-// cron.schedule('*/10 * * * * *', async () => {
-//     try {
-//         pricesToken = await binance.prices();
-//         console.log("prices updated  " + Date.now())
-//     } catch (error) {
-//         console.log(error.message ||
-//             "Having issue")
-//     }
-// });
+cron.schedule('*/10 * * * * *', async () => {
+    try {
+        pricesToken = await binance.prices();
+        console.log("prices updated  " + Date.now())
+    } catch (error) {
+        console.log(error.message ||
+            "Having issue")
+    }
+});
 module.exports = router;
