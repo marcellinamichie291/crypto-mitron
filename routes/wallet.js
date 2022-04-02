@@ -30,7 +30,7 @@ router.get('/get', authenticateToken, async function (req, res) {
             let getResults = await toWalletRes(userId, getAllTransactions);
             return res.status(200).json({ isSuccess: true, data: getResults, message: "Transaction Found successfully" });
         }
-        return res.status(404).json({ isSuccess: false, data: null, message: "No any transactions found" });
+        return res.status(200).json({ isSuccess: true, data: { userId: userId, tokens: {} }, message: "No any transactions found" });
     } catch (error) {
         return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
     }
@@ -133,7 +133,7 @@ router.get('/getDetails', authenticateToken, async function (req, res) {
             // console.log(finalTokenPrice)
             return res.status(200).json({ isSuccess: true, data: { userId: userId, ...finalToken }, message: "Transaction Found successfully" });
         }
-        return res.status(404).json({ isSuccess: false, data: null, message: "No any transactions found" });
+        return res.status(200).json({ isSuccess: true, data: { userId: userId, USDT: 0, INR: 0, tokens: [] }, message: "No any transactions found" });
     } catch (error) {
         return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
     }

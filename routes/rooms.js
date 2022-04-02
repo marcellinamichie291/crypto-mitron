@@ -162,7 +162,7 @@ router.post('/getMyRooms', authenticateToken, checkRole(["host"]), async (req, r
         ]);
 
         if (getRooms.length == 0) {
-            return res.status(404).json({ isSuccess: false, data: null, messsage: "no any room found" });
+            return res.status(200).json({ isSuccess: true, data: [], messsage: "no any room found" });
         }
 
         return res.status(200).json({ isSuccess: true, data: { userId: req.user._id, roomDetails: getRooms }, messsage: "All Previous Rooms Found" });
@@ -183,7 +183,7 @@ router.get('/getAllRooms', async (req, res) => {
         ]);
 
         if (getRooms.length == 0) {
-            return res.status(404).json({ isSuccess: false, data: null, messsage: "no any room found" });
+            return res.status(200).json({ isSuccess: true, data: [], messsage: "no any room found" });
         }
 
         return res.status(200).json({ isSuccess: true, data: getRooms, messsage: "All Previos Rooms Found" });

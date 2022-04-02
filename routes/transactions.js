@@ -167,7 +167,12 @@ router.get('/get/', authenticateToken, async function (req, res) {
       // let getResultsFor = toTransRes(userId, getAllTransactions);
       return res.status(200).json({ isSuccess: true, data: getResults, messsage: "Transaction stored successfully" });
     }
-    return res.status(404).json({ isSuccess: true, data: null, messsage: "No any transactions found" });
+    return res.status(200).json({
+      isSuccess: true, data: {
+        userId: userId,
+        transactions: {}
+      }, messsage: "No any transactions found"
+    });
   } catch (error) {
     return res.status(500).json({ isSuccess: false, data: null, messsage: error.message || "Having issue is server" })
   }
@@ -189,7 +194,7 @@ router.get('/wallet/', authenticateToken, async function (req, res) {
       // console.log(getResultIs);
       return res.status(200).json({ isSuccess: true, data: getResults, messsage: "Transaction Found successfully" });
     }
-    return res.status(404).json({ isSuccess: false, data: null, messsage: "No any transactions found" });
+    return res.status(200).json({ isSuccess: true, data: { userId: userId, tokens: {} }, messsage: "No any transactions found" });
   } catch (error) {
     return res.status(500).json({ isSuccess: false, data: null, messsage: error.message || "Having issue is server" })
   }
@@ -212,7 +217,7 @@ router.get('/wallet/v1/', authenticateToken, async function (req, res) {
       // console.log(finalTokenPrice)
       return res.status(200).json({ isSuccess: true, data: finalToken, messsage: "Transaction Found successfully" });
     }
-    return res.status(404).json({ isSuccess: false, data: null, messsage: "No any transactions found" });
+    return res.status(200).json({ isSuccess: true, data: [], messsage: "No any transactions found" });
   } catch (error) {
     return res.status(500).json({ isSuccess: false, data: null, messsage: error.message || "Having issue is server" })
   }
