@@ -89,21 +89,19 @@ router.post('/signUpWithGoogle', async (req, res, next) => {
         getAuth()
             .verifyIdToken(idToken, checkRevoked)
             .then(async (payload) => {
-                // console.log(payload)
+                console.log(payload)
                 console.log("token is valid in payload")
                 // Token is valid.
                 const { name, email, password, mobileNo, role } = payload;
+                console.log(email.toString())
                 let checkExist = await userSchema.aggregate([
                     {
                         $match: {
-                            $or: [
-                                { mobileNo: mobileNo },
-                                { email: email }
-                            ]
+                            email: email
                         }
                     }
                 ]);
-
+                // console.log(checkExist);
                 if (checkExist.length > 0) {
                     let user = {
                         _id: checkExist[0]._id,
@@ -130,7 +128,7 @@ router.post('/signUpWithGoogle', async (req, res, next) => {
                 });
 
                 await userIs.save();
-
+                console.log(userIs)
                 let user = {
                     _id: userIs._id,
                     timestamp: Date.now()
