@@ -5,6 +5,7 @@ const roomSchema = require('../models/roomModel');
 const getCurrentDateTime = require('../utils/timeFunctions');
 const { authenticateToken, checkRole } = require('../middleware/auth');
 const { default: mongoose } = require('mongoose');
+
 const pusher = require('../services/pusher');
 MARKET_CAP_SYMBOLS = "btc,ae";
 let token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3Nfa2V5IjoiNjIxZGIzZDQ2OTJiNmQwNTIzMGEwODcwIiwidHlwZSI6Im1hbmFnZW1lbnQiLCJ2ZXJzaW9uIjoyLCJpYXQiOjE2NDY2MjkxMTEsIm5iZiI6MTY0NjYyOTExMSwiZXhwIjoxNjQ5MjIxMTExLCJqdGkiOiJjNjhkMzg5NC01NjA3LTQ5MzEtYjVhNi03ZDUyMzY4ZDJmYmEifQ.eY2Zrv6N74GF55zkAgvmqjPgtuM40UAmq8ZmaB2T4DQ"

@@ -13,6 +13,13 @@ const userWallet = require('../models/userWallet');
 const { authenticateToken } = require('../middleware/auth');
 const transactionSchema = require('../models/transactionModel');
 const constants = require('../utils/constants');
+const redis = require('redis');
+// const client = redis.createClient();
+const client = redis.createClient("6380", "127.0.0.1");
+client.connect();
+client.on('connect', function () {
+    console.log('Connected!');
+});
 //wallet token 
 router.get('/get', authenticateToken, async function (req, res) {
     try {
@@ -71,64 +78,71 @@ router.get('/getDetails', authenticateToken, async function (req, res) {
 
         const userId = req.user._id;
         console.log("data find first" + Date.now());
-        let getDebitTransactions = await transactionSchema.aggregate([
+        let getAllTransactions = await transactionSchema.aggregate([
             {
                 $match: {
                     userId: mongoose.Types.ObjectId(userId)
                 }
-            },
-            {
-                $addFields: {
-                    debitAmountIs: { $subtract: [0, '$debitAmount'] }
-                }
-            },
-            {
-                $group:
-                {
-                    _id: { token: "$debitToken" },
-                    total: { $sum: "$debitAmountIs" }
-                }
             }
-        ]);
-        console.log("data find second" + Date.now());
-        let getCreditTransactions = await transactionSchema.aggregate([
-            {
-                $match: {
-                    userId: mongoose.Types.ObjectId(userId)
-                }
-            },
-            {
-                $group:
-                {
-                    _id: { token: "$creditToken" },
-                    total: { $sum: "$creditAmount" }
-                }
-            }
-        ]);
+        ])
+        // let getDebitTransactions = await transactionSchema.aggregate([
+        //     {
+        //         $match: {
+        //             userId: mongoose.Types.ObjectId(userId)
+        //         }
+        //     },
+        //     {
+        //         $addFields: {
+        //             debitAmountIs: { $subtract: [0, '$debitAmount'] }
+        //         }
+        //     },
+        //     {
+        //         $group:
+        //         {
+        //             _id: { token: "$debitToken" },
+        //             total: { $sum: "$debitAmountIs" }
+        //         }
+        //     }
+        // ]);
+        // console.log("data find second" + Date.now());
+        // let getCreditTransactions = await transactionSchema.aggregate([
+        //     {
+        //         $match: {
+        //             userId: mongoose.Types.ObjectId(userId)
+        //         }
+        //     },
+        //     {
+        //         $group:
+        //         {
+        //             _id: { token: "$creditToken" },
+        //             total: { $sum: "$creditAmount" }
+        //         }
+        //     }
+        // ]);
 
-        if (getCreditTransactions.length > 0 && getDebitTransactions.length > 0) {
-            const balance = await getWalletBalance(userId);
-            console.log("data find" + Date.now());
-            const results = [...getCreditTransactions, ...getDebitTransactions];
-            const resultIs = results.reduce(function (res, value) {
-                if (!res[value._id.token]) {
-                    if (value._id.token == "INR") {
-                        res[value._id.token] = balance
-                    } else {
-                        res[value._id.token] = 0
-                    }
+        if (getAllTransactions.length > 0) {
+            // const balance = await getWalletBalance(userId);
+            // console.log("data find" + Date.now());
+            // const results = [...getCreditTransactions, ...getDebitTransactions];
+            // const resultIs = results.reduce(function (res, value) {
+            //     if (!res[value._id.token]) {
+            //         if (value._id.token == "INR") {
+            //             res[value._id.token] = balance
+            //         } else {
+            //             res[value._id.token] = 0
+            //         }
 
-                }
-                res[value._id.token] += value.total;
-                return res;
-            }, {});
+            //     }
+            //     res[value._id.token] += value.total;
+            //     return res;
+            // }, {});
             // console.log(results)
             // console.log(resultIs)
 
-            // let getResults = await toWalletRes(userId, getAllTransactions);
+            let getResults = await toWalletRes(userId, getAllTransactions);
             // console.log(getResults);
             console.log("token" + Date.now())
-            const finalToken = await getAssetWithUSDTINR(resultIs)
+            const finalToken = await getAssetWithUSDTINR(getResults.tokens)
             console.log("calculatedDone" + Date.now());
             // console.log(finalTokenPrice)
             return res.status(200).json({ isSuccess: true, data: { userId: userId, ...finalToken }, message: "Transaction Found successfully" });
@@ -144,7 +158,8 @@ async function getAssetWithUSDTINR(tokenIs) {
     allAsset = []
     console.log("before binance" + Date.now());
     //get binance prices
-    const prices = pricesToken;
+    const prices = JSON.parse(await client.get('token-data'));
+    // const prices = pricesToken;
     console.log("after binance" + Date.now());
     //getting token 
     const keys = Object.keys(tokenIs)
@@ -265,6 +280,10 @@ async function getWalletBalance(userId) {
 cron.schedule('*/10 * * * * *', async () => {
     try {
         pricesToken = await binance.prices();
+        client.set('token-data', JSON.stringify(pricesToken), function (err, reply) {
+            console.log(err.message)
+            console.log(reply);
+        });
         console.log("prices updated  " + Date.now())
     } catch (error) {
         console.log(error.message ||
