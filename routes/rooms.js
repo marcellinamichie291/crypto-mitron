@@ -202,8 +202,9 @@ router.get('/getAllRooms', async (req, res) => {
 async function createRoom100Ms(name, description) {
     try {
         const url = `https://prod-in2.100ms.live/api/v2/rooms`
-        let token = await client.get('100ms-token');
-        console.log(token)
+        // let token = await client.get('100ms-token');
+        // console.log(token)
+        let token = process.env.APP_100_TOKEN
         const response = await axios.post(url, { description: description }, { headers: { Authorization: `Bearer ${token}` } })
 
 
@@ -231,34 +232,34 @@ async function getCoinMarketCapData() {
         return { status: 1 };;
     }
 }
-cron.schedule('0 */12 * * *', async () => {
-    try {
-        jwt.sign(
-            {
-                access_key: app_access_key,
-                type: 'management',
-                version: 2,
-                iat: Math.floor(Date.now() / 1000),
-                nbf: Math.floor(Date.now() / 1000)
-            },
-            app_secret,
-            {
-                algorithm: 'HS256',
-                expiresIn: '24h',
-                jwtid: uuid4()
-            },
-            function (err, token) {
-                client.set('100ms-token', token, function (err, reply) {
-                    console.log(err.message)
-                    console.log(reply);
-                });
-            }
-        );
+// cron.schedule('0 */12 * * *', async () => {
+//     try {
+//         jwt.sign(
+//             {
+//                 access_key: app_access_key,
+//                 type: 'management',
+//                 version: 2,
+//                 iat: Math.floor(Date.now() / 1000),
+//                 nbf: Math.floor(Date.now() / 1000)
+//             },
+//             app_secret,
+//             {
+//                 algorithm: 'HS256',
+//                 expiresIn: '24h',
+//                 jwtid: uuid4()
+//             },
+//             function (err, token) {
+//                 client.set('100ms-token', token, function (err, reply) {
+//                     console.log(err.message)
+//                     console.log(reply);
+//                 });
+//             }
+//         );
 
-        console.log("token updated")
-    } catch (error) {
-        console.log(error.message ||
-            "Having issue")
-    }
-});
+//         console.log("token updated")
+//     } catch (error) {
+//         console.log(error.message ||
+//             "Having issue")
+//     }
+// });
 module.exports = router;

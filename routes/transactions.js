@@ -44,7 +44,7 @@ router.post('/token-generate', async (req, res) => {
     app_secret,
     {
       algorithm: 'HS256',
-      expiresIn: '30d',
+      expiresIn: '365d',
       jwtid: uuid4()
     },
     function (err, token) {
