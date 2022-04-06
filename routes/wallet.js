@@ -13,13 +13,7 @@ const userWallet = require('../models/userWallet');
 const { authenticateToken } = require('../middleware/auth');
 const transactionSchema = require('../models/transactionModel');
 const constants = require('../utils/constants');
-const redis = require('redis');
-// const client = redis.createClient();
-const client = redis.createClient("6380", "127.0.0.1");
-client.connect();
-client.on('connect', function () {
-    console.log('Connected!');
-});
+const client = require('../services/redis-service');
 //wallet token 
 router.get('/get', authenticateToken, async function (req, res) {
     try {
