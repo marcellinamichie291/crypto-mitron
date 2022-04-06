@@ -103,27 +103,38 @@ router.post('/create', authenticateToken, async function (req, res) {
     const checkQuantityIs = await calculateQuantity(debitToken, debitAmount, creditToken)
 
     // return;
-    if (debitToken != "INR") {
-      const userWalletBalance = await getWalletBalanceV1(userId);
-      // console.log("getWalletBalance")
-      // console.log(userWalletBalance);
-      // return
-      if (userWalletBalance.debitToken == undefined) {
+    // if (debitToken != "INR") {
+    console.log("check for balance" + Date.now())
+    let getAllTransactions = await transactionSchema.aggregate([
+      {
+        $match: {
+          userId: mongoose.Types.ObjectId(userId)
+        }
+      }
+    ]);
+    if (getAllTransactions.length > 0) {
+      const userWalletBalance = (await toWalletRes(userId, getAllTransactions)).tokens;
+      if (userWalletBalance[debitToken] == undefined) {
         return res.status(400).json({ isSuccess: false, data: null, message: "User does not have sufficient balance" });
       }
-      if (userWalletBalance.debitToken < debitAmount) {
+      if (userWalletBalance[debitToken] < debitAmount) {
         return res.status(400).json({ isSuccess: false, data: null, message: "User does not have sufficient balance" });
       }
-
     }
     else {
-      const balanceIs = await getWalletBalanceMongo(userId);
-      // console.log(balanceIs)
-      if (balanceIs[0].totalAmount < debitAmount) {
-        return res.status(400).json({ isSuccess: false, data: null, message: "User does not have sufficient balance" });
-      }
-
+      return res.status(400).json({ isSuccess: false, data: null, message: "User does not have sufficient balance" });
     }
+    console.log("check after balance" + Date.now())
+
+    // }
+    // else {
+    //   const balanceIs = await getWalletBalanceMongo(userId);
+    //   // console.log(balanceIs)
+    //   if (balanceIs[0].totalAmount < debitAmount) {
+    //     return res.status(400).json({ isSuccess: false, data: null, message: "User does not have sufficient balance" });
+    //   }
+
+    // }
 
     let createTransaction = new transactionSchema({ userId: userId, debitToken: debitToken, debitAmount: debitAmount, creditToken: creditToken, creditAmount: checkQuantityIs, transactionDate: transactionDate, status: status });
 

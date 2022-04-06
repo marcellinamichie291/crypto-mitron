@@ -2,23 +2,13 @@ require('dotenv').config()
 const jwt = require('jsonwebtoken');
 const { default: mongoose } = require('mongoose');
 const userSchema = require('../models/userModel');
-const userRefToken = require('../models/userToken');
 function generateRefreshToken() {
     return async function (req, res, next) {
         const authHeader = req.headers.authorization;
         const refreshToken = authHeader && authHeader.split(' ')[1]
         // console.log(refreshToken);
         if (refreshToken == null) return res.status(401).json({ isSuccess: false, data: null, message: "please send valid request" });
-        let checkRefreshToken = await userRefToken.aggregate([
-            {
-                $match: {
-                    token: refreshToken
-                }
-            }
-        ]);
-        if (checkRefreshToken.length == 0) {
-            return res.status(403).json({ isSuccess: false, data: null, message: "Token Expired or Invalid Token" });
-        }
+
         jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
             if (err) return res.status(403).json({ isSuccess: false, data: null, message: "Token Expired or Invalid Token" });
             const accessToken = await generateAccessTokenOnly({
@@ -71,11 +61,7 @@ function authenticateToken(req, res, next) {
 }
 async function generateAccessToken(user) {
     const generatedToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '10d' })
-    const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET)
-    let tokenIs = new userRefToken({
-        token: refreshToken
-    });
-    await tokenIs.save();
+    const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '365d' })
     return { generatedToken: generatedToken, refreshToken: refreshToken };
 }
 function generateAccessTokenOnly(user) {

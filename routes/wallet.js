@@ -13,7 +13,7 @@ const userWallet = require('../models/userWallet');
 const { authenticateToken } = require('../middleware/auth');
 const transactionSchema = require('../models/transactionModel');
 const constants = require('../utils/constants');
-// const client = require('../services/redis-service');
+const client = require('../services/redis-service');
 //wallet token 
 router.get('/get', authenticateToken, async function (req, res) {
     try {
@@ -152,8 +152,8 @@ async function getAssetWithUSDTINR(tokenIs) {
     allAsset = []
     console.log("before binance" + Date.now());
     //get binance prices
-    // const prices = JSON.parse(await client.get('token-data'));
-    const prices = pricesToken;
+    const prices = JSON.parse(await client.get('token-data'));
+    // const prices = pricesToken;
     console.log("after binance" + Date.now());
     //getting token 
     const keys = Object.keys(tokenIs)
@@ -274,10 +274,10 @@ async function getWalletBalance(userId) {
 cron.schedule('*/10 * * * * *', async () => {
     try {
         pricesToken = await binance.prices();
-        // client.set('token-data', JSON.stringify(pricesToken), function (err, reply) {
-        //     console.log(err.message)
-        //     console.log(reply);
-        // });
+        client.set('token-data', JSON.stringify(pricesToken), function (err, reply) {
+            console.log(err.message)
+            console.log(reply);
+        });
         console.log("prices updated  " + Date.now())
     } catch (error) {
         console.log(error.message ||
