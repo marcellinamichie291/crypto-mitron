@@ -231,7 +231,7 @@ async function getCoinMarketCapData() {
         return { status: 1 };;
     }
 }
-cron.schedule('*/10 * * * * *', async () => {
+cron.schedule('0 */12 * * *', async () => {
     try {
         jwt.sign(
             {
@@ -244,7 +244,7 @@ cron.schedule('*/10 * * * * *', async () => {
             app_secret,
             {
                 algorithm: 'HS256',
-                expiresIn: '30d',
+                expiresIn: '24h',
                 jwtid: uuid4()
             },
             function (err, token) {
@@ -254,7 +254,6 @@ cron.schedule('*/10 * * * * *', async () => {
                 });
             }
         );
-
 
         console.log("token updated")
     } catch (error) {
