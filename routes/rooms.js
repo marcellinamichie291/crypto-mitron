@@ -12,7 +12,7 @@ const pusher = require('../services/pusher');
 MARKET_CAP_SYMBOLS = "btc,ae";
 
 require('dotenv').config
-const client = require('../services/redis-service');
+// const client = require('../services/redis-service');
 const app_access_key = process.env.APP_100_ACCESS_KEY;
 
 const app_secret = process.env.APP_100_SECRET
