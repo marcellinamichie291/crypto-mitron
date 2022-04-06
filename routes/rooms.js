@@ -5,12 +5,17 @@ const roomSchema = require('../models/roomModel');
 const getCurrentDateTime = require('../utils/timeFunctions');
 const { authenticateToken, checkRole } = require('../middleware/auth');
 const { default: mongoose } = require('mongoose');
-
+var jwt = require('jsonwebtoken');
+var uuid4 = require('uuid4');
+const cron = require('node-cron');
 const pusher = require('../services/pusher');
 MARKET_CAP_SYMBOLS = "btc,ae";
-let token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3Nfa2V5IjoiNjIxZGIzZDQ2OTJiNmQwNTIzMGEwODcwIiwidHlwZSI6Im1hbmFnZW1lbnQiLCJ2ZXJzaW9uIjoyLCJpYXQiOjE2NDY2MjkxMTEsIm5iZiI6MTY0NjYyOTExMSwiZXhwIjoxNjQ5MjIxMTExLCJqdGkiOiJjNjhkMzg5NC01NjA3LTQ5MzEtYjVhNi03ZDUyMzY4ZDJmYmEifQ.eY2Zrv6N74GF55zkAgvmqjPgtuM40UAmq8ZmaB2T4DQ"
-require('dotenv').config
 
+require('dotenv').config
+const client = require('../services/redis-service');
+const app_access_key = process.env.APP_100_ACCESS_KEY;
+
+const app_secret = process.env.APP_100_SECRET
 /* GET home page. */
 router.get('/', function (req, res, next) {
     res.render('index', { title: 'Express' });
@@ -195,16 +200,25 @@ router.get('/getAllRooms', async (req, res) => {
 })
 
 async function createRoom100Ms(name, description) {
-    const url = `https://prod-in2.100ms.live/api/v2/rooms`
+    try {
+        const url = `https://prod-in2.100ms.live/api/v2/rooms`
+        let token = await client.get('100ms-token');
+        // console.log(token)
+        // let token = process.env.APP_100_TOKEN
+        console.log(token)
+        const response = await axios.post(url, { description: description }, { headers: { Authorization: `Bearer ${token}` } })
 
-    const response = await axios.post(url, { description: description }, { headers: { Authorization: `Bearer ${token}` } })
 
+        if (response.status == 200) {
+            return { status: 0, data: response.data };
+        }
+        else {
+            return { status: 1 };;
+        }
 
-    if (response.status == 200) {
-        return { status: 0, data: response.data };
     }
-    else {
-        return { status: 1 };;
+    catch (error) {
+        console.log(error.message)
     }
 }
 async function getCoinMarketCapData() {
@@ -219,4 +233,34 @@ async function getCoinMarketCapData() {
         return { status: 1 };;
     }
 }
+cron.schedule('0 */12 * * *', async () => {
+    try {
+        jwt.sign(
+            {
+                access_key: app_access_key,
+                type: 'management',
+                version: 2,
+                iat: Math.floor(Date.now() / 1000),
+                nbf: Math.floor(Date.now() / 1000)
+            },
+            app_secret,
+            {
+                algorithm: 'HS256',
+                expiresIn: '24h',
+                jwtid: uuid4()
+            },
+            function (err, token) {
+                client.set('100ms-token', token, function (err, reply) {
+                    console.log(err.message)
+                    console.log(reply);
+                });
+            }
+        );
+
+        console.log("token updated")
+    } catch (error) {
+        console.log(error.message ||
+            "Having issue")
+    }
+});
 module.exports = router;
