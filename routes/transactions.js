@@ -368,6 +368,17 @@ async function calculateQuantity(debitToken, debitAmount, creditToken) {
     else {
       //just convert debittoken to credittoken
       console.log(debitToken + "  " + debitAmount + " " + creditToken)
+      if (creditToken == "INR") {
+        const priceIs = debitAmount;
+        console.log(priceIs)
+        const exchange = `${debitToken}USDT`
+        const priceToken = await binance.prices(exchange);
+        console.log(priceToken[exchange])
+        const quantity = (priceIs * parseFloat(priceToken[exchange])) * 75;
+
+        console.log(quantity)
+        return quantity.toFixed(5);
+      }
       let exchangeIs = creditToken + "" + debitToken;
       // console.log(exchangeIs)
       const priceToken = await binance.prices(exchangeIs);
