@@ -1,5 +1,6 @@
 var createError = require('http-errors');
 var express = require('express');
+var cors = require('cors');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
@@ -25,7 +26,7 @@ app.set('view engine', 'ejs');
 
 app.get('/success', (req, res) => res.send(userProfile));
 app.get('/error', (req, res) => res.send("error logging in"));
-
+app.use(cors({ origin: true }));
 app.use(logger('dev'));
 app.use(express.json());
 app.use(bodyParser.json());
