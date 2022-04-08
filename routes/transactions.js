@@ -49,7 +49,7 @@ router.post('/token-generate', async (req, res) => {
       jwtid: uuid4()
     },
     function (err, token) {
-      console.log(token);
+      // console.log(token);
       client.set('100ms-token', token, function (err, reply) {
         console.log(err.message)
         console.log(reply);
@@ -322,7 +322,7 @@ async function getAssetWithUSDTINR(tokenIs) {
 
     allAsset.push(obj);
   }
-  console.log(allAsset)
+  // console.log(allAsset)
   return allAsset;
 }
 async function getAssetPrice() {
@@ -330,7 +330,7 @@ async function getAssetPrice() {
     // console.log(price)
     // // return price;
   });
-  console.log(price)
+  // console.log(price)
   return price;
 }
 function toTransRes(userId, dbResult) {
@@ -352,12 +352,12 @@ function toTransRes(userId, dbResult) {
 }
 async function calculateQuantity(debitToken, debitAmount, creditToken) {
   try {
-    console.log(debitToken + "  " + debitAmount + " " + creditToken)
+    // console.log(debitToken + "  " + debitAmount + " " + creditToken)
     if (debitToken == "INR") {
       //convert to INR and do transaction
 
       const priceIs = debitAmount / 75;
-      console.log(priceIs)
+      // console.log(priceIs)
       const exchange = `${creditToken}USDT`
       const priceToken = await binance.prices(exchange);
       // console.log(priceToken)
@@ -367,16 +367,15 @@ async function calculateQuantity(debitToken, debitAmount, creditToken) {
     }
     else {
       //just convert debittoken to credittoken
-      console.log(debitToken + "  " + debitAmount + " " + creditToken)
+      // console.log(debitToken + "  " + debitAmount + " " + creditToken)
       if (creditToken == "INR") {
         const priceIs = debitAmount;
-        console.log(priceIs)
+        // console.log(priceIs)
         const exchange = `${debitToken}USDT`
         const priceToken = await binance.prices(exchange);
-        console.log(priceToken[exchange])
+        // console.log(priceToken[exchange])
         const quantity = (priceIs * parseFloat(priceToken[exchange])) * 75;
-
-        console.log(quantity)
+        // console.log(quantity)
         return quantity.toFixed(5);
       }
       let exchangeIs = creditToken + "" + debitToken;
@@ -461,7 +460,7 @@ async function getWalletBalance(userId) {
         amount -= getTrans[i].amount
       }
     }
-    console.log(amount)
+    // console.log(amount)
     // const amount = getTrans.map(item => item.amount).reduce((prev, curr) => prev + curr, 0);
     return amount;
   }
