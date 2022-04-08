@@ -117,18 +117,15 @@ router.post('/create', authenticateToken, async function (req, res) {
         }
       }
     ]);
-    if (getAllTransactions.length > 0) {
-      const userWalletBalance = (await toWalletRes(userId, getAllTransactions)).tokens;
-      if (userWalletBalance[debitToken] == undefined) {
-        return res.status(400).json({ isSuccess: false, data: null, message: "User does not have sufficient balance" });
-      }
-      if (userWalletBalance[debitToken] < debitAmount) {
-        return res.status(400).json({ isSuccess: false, data: null, message: "User does not have sufficient balance" });
-      }
-    }
-    else {
+    const userWalletBalance = (await toWalletRes(userId, getAllTransactions)).tokens;
+    // console.log(userWalletBalance);
+    if (userWalletBalance[debitToken] == undefined) {
       return res.status(400).json({ isSuccess: false, data: null, message: "User does not have sufficient balance" });
     }
+    if (userWalletBalance[debitToken] < debitAmount) {
+      return res.status(400).json({ isSuccess: false, data: null, message: "User does not have sufficient balance" });
+    }
+
     console.log("check after balance" + Date.now())
 
     // }
@@ -415,6 +412,9 @@ async function toWalletRes(userId, dbResult) {
   var transRes = {};
   transRes.userId = userId;
   var transactions = [];
+  if (dbResult.length == 0) {
+    tokenMap.has("INR") ? "" : tokenMap.set("INR", balance)
+  }
   for (var i = 0; i < dbResult.length; i++) {
 
 
