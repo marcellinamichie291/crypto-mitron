@@ -118,7 +118,7 @@ router.post('/create', authenticateToken, async function (req, res) {
       }
     ]);
     const userWalletBalance = (await toWalletRes(userId, getAllTransactions)).tokens;
-    // console.log(userWalletBalance);
+    console.log(userWalletBalance);
     if (userWalletBalance[debitToken] == undefined) {
       return res.status(400).json({ isSuccess: false, data: null, message: "User does not have sufficient balance" });
     }
@@ -353,9 +353,9 @@ async function calculateQuantity(debitToken, debitAmount, creditToken) {
     if (debitToken == "INR") {
       //convert to INR and do transaction
 
-      const priceIs = debitAmount / 75;
+      const priceIs = debitAmount / 75;//usdt convertion
       // console.log(priceIs)
-      const exchange = `${creditToken}USDT`
+      const exchange = `${creditToken}USDT`//price binance get pair
       const priceToken = await binance.prices(exchange);
       // console.log(priceToken)
       const quantity = priceIs / parseFloat(priceToken[exchange]);
@@ -408,6 +408,8 @@ function convertCurrency(fromCurrency, price, toCurrency) {
 }
 async function toWalletRes(userId, dbResult) {
   const balance = await getWalletBalance(userId);
+  console.log(balance)
+  // const balance=0
   var tokenMap = new Map();
   var transRes = {};
   transRes.userId = userId;
