@@ -37,7 +37,9 @@ router.get('/symbols', (req, res) => {
 router.get('/history', async (req, res) => {
   try {
     const { symbol, from, to } = req.query;
-    console.log(to)
+
+    const fromIs = from * 1000;
+    const toIs = to * 1000;
     const binance = new Binance().options();
     binance.candlesticks(symbol, "1d", (error, ticks, symbol) => {
       if (error || (ticks == undefined || ticks.length == 0)) {
@@ -56,7 +58,7 @@ router.get('/history', async (req, res) => {
       console.info(t1 + "...." + t2 + "....." +
         t)
       time = ticks.map(function (x) {
-        return x[0];
+        return x[0] / 1000;
       });
       close = ticks.map(function (x) {
         return x[4];
@@ -84,7 +86,7 @@ router.get('/history', async (req, res) => {
       }
       return res.status(200).json(response);
 
-    }, { limit: 500, endTime: 1514764800000 });
+    }, { limit: 500, startTime: fromIs, endTime: toIs });
   } catch (err) { console.log(err.message) }
 })
 
