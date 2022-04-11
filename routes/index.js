@@ -22,14 +22,15 @@ router.get('/config', (req, res) => {
 
 router.get('/symbols', (req, res) => {
 
+
   return res.status(200).json(
     {
-      "symbol": "BNBBTC",
-      "full_name": "BNBBTC", // e.g. BTCE:BTCUSD
-      "description": "BNBBTC",
-      "exchange": "BNBBTC",
-      "ticker": "BNBBTC",
-      "type": "stock" // or "futures" or "crypto" or "forex" or "index"
+      "symbol": req.query.symbol,
+      "full_name": req.query.symbol, // e.g. BTCE:BTCUSD
+      "description": req.query.symbol,
+      "exchange": "BINANCE",
+      "ticker": req.query.symbol,
+      "type": "crypto" // or "futures" or "crypto" or "forex" or "index"
     }
   )
 })
