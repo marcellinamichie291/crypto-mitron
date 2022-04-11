@@ -26,7 +26,7 @@ router.get('/symbols', (req, res) => {
     {
       "symbol": "BNBBTC",
       "full_name": "BNBBTC", // e.g. BTCE:BTCUSD
-      "description": "<symbol description>",
+      "description": "BNBBTC",
       "exchange": "BNBBTC",
       "ticker": "BNBBTC",
       "type": "stock" // or "futures" or "crypto" or "forex" or "index"
