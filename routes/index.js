@@ -6,6 +6,7 @@ const binance = new Binance().options({
   APISECRET: process.env.BINANCE_APISECRET
 });
 
+const symbolSchema = require('../models/symbolModel');
 /* GET home page. */
 router.get('/', function (req, res, next) {
   res.render('index', { title: 'Express' });
@@ -20,9 +21,30 @@ router.get('/config', (req, res) => {
   })
 })
 
-router.get('/symbols', (req, res) => {
+router.get('/symbols', async (req, res) => {
+  const { symbol } = req.query;
 
-
+  let checkSymbol = await symbolSchema.aggregate([
+    {
+      $match: {
+        token: symbol
+      }
+    }
+  ]);
+  console.log(checkSymbol.length)
+  if (checkSymbol.length > 0) {
+    return res.status(200).json(
+      {
+        "symbol": req.query.symbol,
+        "full_name": checkSymbol[0].fullName, // e.g. BTCE:BTCUSD
+        "description": checkSymbol[0].description,
+        "exchange": "BINANCE",
+        "pricescale": 100,
+        "ticker": req.query.symbol,
+        "type": "crypto" // or "futures" or "crypto" or "forex" or "index"
+      }
+    )
+  }
   return res.status(200).json(
     {
       "symbol": req.query.symbol,
@@ -42,7 +64,7 @@ router.get('/history', async (req, res) => {
     const fromIs = from * 1000;
     const toIs = to * 1000;
     const binance = new Binance().options();
-    binance.candlesticks(symbol, "1d", (error, ticks, symbol) => {
+    binance.candlesticks(symbol.toUpperCase() + "USDT", "1d", (error, ticks, symbol) => {
       if (error || (ticks == undefined || ticks.length == 0)) {
         return res.status(200).json({
           s: "no_data",
