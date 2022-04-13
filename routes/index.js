@@ -84,16 +84,16 @@ router.get('/history', async (req, res) => {
         return x[0] / 1000;
       });
       close = ticks.map(function (x) {
-        return x[4];
+        return x[4] * 75;
       });
       open = ticks.map(function (x) {
-        return x[1];
+        return x[1] * 75;
       });
       high = ticks.map(function (x) {
-        return x[2];
+        return x[2] * 75;
       });
       low = ticks.map(function (x) {
-        return x[3];
+        return x[3] * 75;
       });
       volume = ticks.map(function (x) {
         return x[5];
