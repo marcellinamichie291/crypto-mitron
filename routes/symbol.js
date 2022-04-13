@@ -52,23 +52,14 @@ const getSymbol = async (name) => {
     return getAllSymbol;
 }
 
-router.get('/config', (req, res) => {
-    return res.status(200).json({
-        supported_resolutions: ['1', '5', '15', '30', '60', '1D', '1W', '1M'],
-        supports_group_request: false,
-        supports_marks: false,
-        supports_search: true,
-        supports_timescale_marks: false,
-    })
-})
 router.post('/add', async (req, res, next) => {
     try {
-        const { name, fullForm, description } = req.body;
+        const { token, label, description } = req.body;
 
         let checkExist = await symbolSchema.aggregate([
             {
                 $match: {
-                    name: name
+                    token: token
                 }
             }
         ])
@@ -77,8 +68,8 @@ router.post('/add', async (req, res, next) => {
             return res.status(200).json({ isSuccess: true, data: { token: checkExist[0].token }, message: "Symbol Details Already Exist" })
         }
         let symbolIs = new symbolSchema({
-            token: name,
-            label: fullForm,
+            token: token,
+            label: label,
             description: description
         });
 
