@@ -11,7 +11,7 @@ const axios = require('axios')
 const client = require('../services/redis-service');
 const app_access_key = '621db3d4692b6d05230a0870';
 const app_secret = '_01RbLt1WIU0SP4BwR3pgIxFZI_1l857wCZqksdMdYwY_sTbhZdvsXpI7Pc4qUZrVCpeB0Eano7iRm00P_CMddtwMT97tdHIOyAq2rQf9yb0LzW767zq1lPEcVzdafdEiFgQOZtH4o98kB8vXYgTdiCq5nIpz4QZfpz18kqQTYM=';
-
+require("dotenv").config();
 /* GET home page. */
 
 let currency = [
@@ -289,7 +289,7 @@ async function getAssetWithUSDTINR(tokenIs) {
     // console.log(prices)
     if (token in prices) {
       USDT = prices[token] * tokenIs[keys[i]]
-      INR = USDT * 75;
+      INR = USDT * parseInt(process.env.USDT_PRICE);
       obj = {
         token: keys[i],
         quantity: tokenIs[keys[i]],
@@ -303,14 +303,14 @@ async function getAssetWithUSDTINR(tokenIs) {
           token: keys[i],
           quantity: tokenIs[keys[i]],
           USDT: tokenIs[keys[i]],
-          INR: tokenIs[keys[i]] * 75
+          INR: tokenIs[keys[i]] * parseInt(process.env.USDT_PRICE)
         }
       }
       else {
         obj = {
           token: keys[i],
           quantity: tokenIs[keys[i]],
-          USDT: tokenIs[keys[i]] / 75,
+          USDT: tokenIs[keys[i]] / parseInt(process.env.USDT_PRICE),
           INR: tokenIs[keys[i]]
         }
       }
@@ -353,7 +353,7 @@ async function calculateQuantity(debitToken, debitAmount, creditToken) {
     if (debitToken == "INR") {
       //convert to INR and do transaction
 
-      const priceIs = debitAmount / 75;//usdt convertion
+      const priceIs = debitAmount / parseInt(process.env.USDT_PRICE);//usdt convertion
       // console.log(priceIs)
       const exchange = `${creditToken}USDT`//price binance get pair
       const priceToken = await binance.prices(exchange);
@@ -371,7 +371,7 @@ async function calculateQuantity(debitToken, debitAmount, creditToken) {
         const exchange = `${debitToken}USDT`
         const priceToken = await binance.prices(exchange);
         // console.log(priceToken[exchange])
-        const quantity = (priceIs * parseFloat(priceToken[exchange])) * 75;
+        const quantity = (priceIs * parseFloat(priceToken[exchange])) * parseInt(process.env.USDT_PRICE);
         // console.log(quantity)
         return quantity.toFixed(5);
       }

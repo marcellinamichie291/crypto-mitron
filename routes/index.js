@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+require("dotenv").config();
 const Binance = require('node-binance-api');
 const binance = new Binance().options({
   APIKEY: process.env.BINANCE_APIKEY,
@@ -84,16 +85,16 @@ router.get('/history', async (req, res) => {
         return x[0] / 1000;
       });
       close = ticks.map(function (x) {
-        return x[4] * 75;
+        return (x[4] * process.env.USDT_PRICE);
       });
       open = ticks.map(function (x) {
-        return x[1] * 75;
+        return (x[1] * process.env.USDT_PRICE);
       });
       high = ticks.map(function (x) {
-        return x[2] * 75;
+        return (x[2] * process.env.USDT_PRICE);
       });
       low = ticks.map(function (x) {
-        return x[3] * 75;
+        return (x[3] * process.env.USDT_PRICE);
       });
       volume = ticks.map(function (x) {
         return x[5];

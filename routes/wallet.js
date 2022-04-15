@@ -170,7 +170,7 @@ async function getAssetWithUSDTINR(tokenIs) {
             console.log("price is")
             console.log(prices[token])
             USDT = prices[token] * tokenIs[keys[i]]
-            INR = USDT * 75;
+            INR = USDT * parseInt(process.env.USDT_PRICE);
             usdt += USDT;
             inr += INR;
             obj = {
@@ -185,22 +185,22 @@ async function getAssetWithUSDTINR(tokenIs) {
             // console.log(keys[i])
             if (keys[i] == "USDT") {
                 usdt += tokenIs[keys[i]];
-                inr += tokenIs[keys[i]] * 75
+                inr += tokenIs[keys[i]] * parseInt(process.env.USDT_PRICE)
                 obj = {
                     token: keys[i],
                     quantity: tokenIs[keys[i]],
                     USDT: tokenIs[keys[i]],
-                    INR: tokenIs[keys[i]] * 75,
+                    INR: tokenIs[keys[i]] * parseInt(process.env.USDT_PRICE),
                     icon: constants.ICON_BASE_URL + keys[i].toLowerCase() + ".png"
                 }
             }
             else {
-                usdt += tokenIs[keys[i]] / 75;
+                usdt += tokenIs[keys[i]] / parseInt(process.env.USDT_PRICE);
                 inr += tokenIs[keys[i]]
                 obj = {
                     token: keys[i],
                     quantity: tokenIs[keys[i]],
-                    USDT: tokenIs[keys[i]] / 75,
+                    USDT: tokenIs[keys[i]] / parseInt(process.env.USDT_PRICE),
                     INR: tokenIs[keys[i]],
                     icon: constants.ICON_BASE_URL + keys[i].toLowerCase() + ".png"
                 }
