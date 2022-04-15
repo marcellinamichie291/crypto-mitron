@@ -158,7 +158,7 @@ router.get('/getTokens', async (req, res) => {
 })
 //for upload all token data to s3 every 10 second
 //for 10 minute==*/10 * * * *
-cron.schedule('*/10 * * * * *', async () => {
+cron.schedule('0 * * * *', async () => {
     try {
         const response = await getTokensJson();
         if (response.status == 0) {
