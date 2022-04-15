@@ -4,7 +4,7 @@ const uploadJson = (json) => {
         const s3 = new aws.S3();
         var data = {
             Bucket: 'bitron-test',
-            Key: 'token-details/testToken.json',
+            Key: 'token-details/tokens.json',
             Body: json,
             ContentEncoding: 'base64',
             ContentType: 'application/json',
