@@ -3,7 +3,9 @@ var router = express.Router();
 const constants = require('../utils/constants');
 const axios = require('axios')
 const cron = require('node-cron');
+const symbolSchema = require('../models/symbolModel');
 const { uploadJson } = require('../utils/aws-uploads');
+require("dotenv").config();
 /* GET home page. */
 router.get('/', function (req, res, next) {
     res.render('index', { title: 'Express' });
@@ -156,33 +158,33 @@ router.get('/getTokens', async (req, res) => {
 })
 //for upload all token data to s3 every 10 second
 //for 10 minute==*/10 * * * *
-// cron.schedule('*/10 * * * * *', async () => {
-//     try {
-//         const response = await getTokensJson();
-//         if (response.status == 0) {
-//             const resp = response.resp;
-//             var buf = Buffer.from(JSON.stringify(resp));
-//             const responseIs = await uploadJson(buf)
-//             console.log("uploaded")
-//             // console.log(responseIs)
-//             // return res.status(200).json({ IsSuccess: true, Data: resp, Messsage: "top loosers by 24 hour change" });
-//         }
-//         else {
-//             console.log("json data cannot construct")
-//             // return res.status(500).json({ IsSuccess: false, Data: [], Message: response.Message || "Having issue is server" })
-//         }
+cron.schedule('*/10 * * * * *', async () => {
+    try {
+        const response = await getTokensJson();
+        if (response.status == 0) {
+            const resp = response.resp;
+            var buf = Buffer.from(JSON.stringify(resp));
+            const responseIs = await uploadJson(buf)
+            // console.log("uploaded")
+            // console.log(responseIs)
+            // return res.status(200).json({ IsSuccess: true, Data: resp, Messsage: "top loosers by 24 hour change" });
+        }
+        else {
+            console.log("json data cannot construct")
+            // return res.status(500).json({ IsSuccess: false, Data: [], Message: response.Message || "Having issue is server" })
+        }
 
-//         // resp = tokenIs.sort((a, b) => parseFloat(b.change_24h_per) - parseFloat(a.change_24h_per));
+        // resp = tokenIs.sort((a, b) => parseFloat(b.change_24h_per) - parseFloat(a.change_24h_per));
 
-//     } catch (error) {
-//         console.log(error.message ||
-//             "Having issue")
-//     }
-//     // const resp = response.resp;
-//     // var buf = Buffer.from(JSON.stringify(resp));
-//     // const responseIs = await uploadJson(buf)
-//     console.log('running on Sundays of January and September');
-// });
+    } catch (error) {
+        console.log(error.message ||
+            "Having issue")
+    }
+    // const resp = response.resp;
+    // var buf = Buffer.from(JSON.stringify(resp));
+    // const responseIs = await uploadJson(buf)
+    console.log('running on Sundays of January and September');
+});
 //========FUNCTIONS============
 async function getCoinMarketCapData(tokens) {
     const url = `https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=${tokens}`
@@ -215,7 +217,26 @@ async function getBinance24Change(tokens) {
 }
 async function getTokensJson() {
     try {
-        let tokens = constants.TOKENS;
+        // let tokens = constants.TOKENS;
+        let tokens = await symbolSchema.aggregate([
+            {
+                $match: {
+
+                }
+            },
+            {
+                $project: {
+                    token: 1,
+                    label: 1
+                }
+            }
+        ]);
+
+        let featuredIs = constants.FEATURED;
+        // console.log(featuredIs)
+        // let tokens = getTokens.map(a => a.token);
+        // console.log(tokens)
+
         // let tokenIs = (tokens.map(a => a.token)).toString();
         // tokenPrices = await getBinance24Change(tokens.toString())
 
@@ -224,7 +245,8 @@ async function getTokensJson() {
         let feautured = [];
         let loosers = [];
         for (i = 0; i < tokens.length; i++) {
-            const token = tokens[i];
+            const token = tokens[i].token;
+            const label = tokens[i].label;
             const tokenName = token.toUpperCase();
             const tokenPair = (token + "usdt").toUpperCase();
             const tokenPrices = await getBinance24Change(tokenPair)
@@ -234,7 +256,7 @@ async function getTokensJson() {
                 "token": token,
                 "token_pair": token + "usdt",
                 "name": tokenName,
-                "label": "Bitcoin",
+                "label": label,
                 "icon": constants.ICON_BASE_URL + token + ".png",
                 last_price: tokenPrices.data.lastPrice,
                 priceChange: tokenPrices.data.priceChange,
@@ -245,27 +267,34 @@ async function getTokensJson() {
                 "token": token,
                 "token_pair": token + "usdt",
                 "name": tokenName,
-                "label": "Bitcoin",
+                "label": label,
                 "icon": constants.ICON_BASE_URL + token + ".png",
-                last_price: tokenPrices.data.lastPrice * 75,
-                priceChange: tokenPrices.data.priceChange * 75,
+                last_price: tokenPrices.data.lastPrice * parseInt(process.env.USDT_PRICE),
+                priceChange: tokenPrices.data.priceChange * parseInt(process.env.USDT_PRICE),
                 change_24h_per: tokenPrices.data.priceChangePercent
             }
-            let tokenfeautured = {
-                "token": token,
-                "token_pair": token + "usdt",
-                "name": tokenName,
-                "label": "Bitcoin",
-                "icon": constants.ICON_BASE_URL + token + ".png",
-                last_price: tokenPrices.data.lastPrice * 75,
-                priceChange: tokenPrices.data.priceChange * 75,
-                change_24h_per: tokenPrices.data.priceChangePercent,
-                "data": [0.0, 0.5, 0.9, 1.4, 2.2, 1.0, 3.3, 0.0, -0.5, -1.0, -0.5, 0.0, 0.0]
+
+            // console.log(token in featuredIs);
+            if (featuredIs.includes(token)) {
+                // console.log("found " + token)
+                let tokenfeautured = {
+                    "token": token,
+                    "token_pair": token + "usdt",
+                    "name": tokenName,
+                    "label": label,
+                    "icon": constants.ICON_BASE_URL + token + ".png",
+                    last_price: tokenPrices.data.lastPrice * parseInt(process.env.USDT_PRICE),
+                    priceChange: tokenPrices.data.priceChange * parseInt(process.env.USDT_PRICE),
+                    change_24h_per: tokenPrices.data.priceChangePercent,
+                    "data": [0.0, 0.5, 0.9, 1.4, 2.2, 1.0, 3.3, 0.0, -0.5, -1.0, -0.5, 0.0, 0.0]
+                }
+                feautured.push(tokenfeautured);
+
             }
-            // 
+
+            //
             tokenIs.push(tokenObj);
 
-            feautured.push(tokenfeautured);
             if (tokenPrices.data.priceChangePercent > 0) {
                 gainers.push(tokenRupee)
             }
@@ -276,12 +305,16 @@ async function getTokensJson() {
 
         tokensLoosers = loosers.sort((a, b) => parseFloat(a.change_24h_per) - parseFloat(b.change_24h_per));
         tokensGainers = gainers.sort((a, b) => parseFloat(b.change_24h_per) - parseFloat(a.change_24h_per));
-        console.log(loosers.length)
+
+        tokensLoosers.splice(process.env.GAINER_LOOSER - 1, (tokensLoosers.length - process.env.GAINER_LOOSER));
+        tokensGainers.splice(process.env.GAINER_LOOSER - 1, (tokensGainers.length - process.env.GAINER_LOOSER));
+        // console.log(loosers.length)
         let resp = {
             currency: constants.CURRENCY,
+            rate: process.env.USDT_PRICE,
             banners: constants.BANNER,
             tokens: tokenIs,
-            feautured: feautured,
+            featured: feautured,
             gainers: tokensGainers,
             losers: tokensLoosers
         };
