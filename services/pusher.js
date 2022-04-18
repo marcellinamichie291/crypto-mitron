@@ -1,5 +1,4 @@
 const Pusher = require("pusher");
-require('dotenv').config;
 const pusher = new Pusher({
     appId: "1355944",
     key: "1665016a8f2d3afa4cf6",

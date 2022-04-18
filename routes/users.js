@@ -5,9 +5,7 @@ const userKyc = require('../models/userKyc');
 const { generateAccessToken, generateRefreshToken, authenticateToken } = require('../middleware/auth');
 const { default: mongoose } = require('mongoose');
 const userWallet = require('../models/userWallet');
-const CLIENT_ID = "525460832991-afsdffsq6liot36lmlfpuk6ir9fldtdn.apps.googleusercontent.com"
-const { OAuth2Client } = require('google-auth-library');
-const client = new OAuth2Client(CLIENT_ID);
+
 const bodySchema = require('../models/bodyData');
 
 
@@ -301,18 +299,5 @@ router.post('/refresh-token', generateRefreshToken(), async (req, res, next) => 
   console.log("api called");
 })
 
-
-async function verify(token) {
-  const ticket = await client.verifyIdToken({
-    idToken: token,
-    audience: CLIENT_ID,  // Specify the CLIENT_ID of the app that accesses the backend
-    // Or, if multiple clients access the backend:
-    //[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
-  });
-  const payload = ticket.getPayload();
-  const userid = payload['sub'];
-  // If request specified a G Suite domain:
-  // const domain = payload['hd'];
-}
 
 module.exports = router;

@@ -205,7 +205,7 @@ async function createRoom100Ms(name, description) {
         let token = await client.get('100ms-token');
         // console.log(token)
         // let token = process.env.APP_100_TOKEN
-        console.log(token)
+        // console.log(token)
         const response = await axios.post(url, { description: description }, { headers: { Authorization: `Bearer ${token}` } })
 
 
