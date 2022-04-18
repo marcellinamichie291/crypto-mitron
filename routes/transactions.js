@@ -9,21 +9,11 @@ const binance = require('../services/binance');
 const constants = require('../utils/constants');
 const axios = require('axios')
 const client = require('../services/redis-service');
-const app_access_key = '621db3d4692b6d05230a0870';
-const app_secret = '_01RbLt1WIU0SP4BwR3pgIxFZI_1l857wCZqksdMdYwY_sTbhZdvsXpI7Pc4qUZrVCpeB0Eano7iRm00P_CMddtwMT97tdHIOyAq2rQf9yb0LzW767zq1lPEcVzdafdEiFgQOZtH4o98kB8vXYgTdiCq5nIpz4QZfpz18kqQTYM=';
+const app_access_key = process.env.APP_100_ACCESS_KEY;
+const app_secret = process.env.APP_100_SECRET;
 require("dotenv").config();
 /* GET home page. */
 
-let currency = [
-  {
-    token: "BTC",
-    price: 3267360.43
-  },
-  {
-    token: "ETH",
-    price: 199527.05
-  }
-]
 router.get('/', function (req, res, next) {
   res.render('index', { title: 'Express' });
 });
