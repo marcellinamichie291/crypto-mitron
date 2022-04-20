@@ -8,11 +8,11 @@ const binance = new Binance().options({
     APISECRET: process.env.BINANCE_APISECRET
 });
 let pricesToken = {};
+const constants = require('../utils/constants');
 const userSchema = require('../models/userModel');
 const userWallet = require('../models/userWallet');
 const { authenticateToken } = require('../middleware/auth');
 const transactionSchema = require('../models/transactionModel');
-const constants = require('../utils/constants');
 const client = require('../services/redis-service');
 //wallet token 
 
@@ -246,7 +246,27 @@ async function toWalletRes(userId, dbResult) {
     // console.log(transRes);
     return transRes;
 }
+async function setFeaturedData() {
+    let featuredIs = constants.FEATURED;
+    let data = featuredIs.map((e) => { return e.toUpperCase() + "USDT" });
+    for (i = 0; i < data.length; i++) {
+        await binance.candlesticks(data[i], "1d", (error, ticks, symbol) => {
+            if (error || (ticks == undefined || ticks.length == 0)) {
+                console.log(error.message)
+                return;
+            }
 
+            open = ticks.map(function (x) {
+                return (x[1] * process.env.USDT_PRICE);
+            });
+
+            client.set(symbol, JSON.stringify(open), function (err, reply) {
+                console.log(err.message)
+                console.log(reply);
+            });
+        }, { limit: 15 });
+    }
+}
 async function getWalletBalance(userId) {
     let getTrans = await userWallet.aggregate([
         {
@@ -259,7 +279,7 @@ async function getWalletBalance(userId) {
     if (getTrans.length > 0) {
         amount = 0
         for (i = 0; i < getTrans.length; i++) {
-            if (getTrans[i].type == "DEPOSIT") {
+            if (getTrans[i].type == "DEPOSIT" || getTrans[i].type == "BONUS") {
                 amount += getTrans[i].amount
             }
             else {
@@ -272,6 +292,7 @@ async function getWalletBalance(userId) {
     }
     return 0;
 }
+
 cron.schedule('*/10 * * * * *', async () => {
     try {
         pricesToken = await binance.prices();
@@ -279,6 +300,7 @@ cron.schedule('*/10 * * * * *', async () => {
             console.log(err.message)
             console.log(reply);
         });
+        await setFeaturedData();
         console.log("prices updated  " + Date.now())
     } catch (error) {
         console.log(error.message ||

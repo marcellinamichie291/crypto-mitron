@@ -12,6 +12,7 @@ var admin = require("firebase-admin");
 const { getAuth } = require("firebase-admin/auth");
 const { getApp } = require('firebase-admin/app');
 const userSchema = require('../models/userModel')
+const userWallet = require('../models/userWallet')
 var serviceAccount = require("../files/serviceAccountKey.json");
 const { generateAccessToken, generateRefreshToken, authenticateToken } = require('../middleware/auth');
 // console.log(serviceAccount)
@@ -22,7 +23,7 @@ admin.initializeApp({
 
 router.post('/signUpWithGoogle', async (req, res, next) => {
     try {
-        console.log(req.body)
+        // console.log(req.body)
         const { idToken } = req.body;
         if (idToken == undefined) {
             return res.status(401).json({ isSuccess: false, data: null, message: "please check id token in request" });
@@ -70,13 +71,22 @@ router.post('/signUpWithGoogle', async (req, res, next) => {
                 });
 
                 await userIs.save();
-                console.log(userIs)
+                let depositBonus = new userWallet({
+                    userId: userIs._id,
+                    type: "BONUS",
+                    amount: process.env.SIGNUP_BONUS,
+                    currency: "INR",
+                    time: Date.now()
+                })
+
+                await depositBonus.save();
+                // console.log(userIs)
                 let user = {
                     _id: userIs._id,
                     timestamp: Date.now()
                 }
                 const { generatedToken, refreshToken } = await generateAccessToken(user);
-                return res.status(200).json({ isSuccess: true, data: { user: { email: userIs.email, name: userIs.name, id: userIs._id, role: userIs.role }, token: generatedToken, refreshToken: refreshToken }, message: "user successfully signed up" });
+                return res.status(200).json({ isSuccess: true, data: { user: { email: userIs.email, name: userIs.name, id: userIs._id, role: userIs.role, bonus: depositBonus.amount }, token: generatedToken, refreshToken: refreshToken }, message: "user successfully signed up" });
             })
             .catch((error) => {
                 console.log(error.message)

@@ -6,7 +6,7 @@ const userRefToken = mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ["WITHDRAW", "DEPOSIT"]
+        enum: ["WITHDRAW", "DEPOSIT", "BONUS"]
     },
     amount: Number,
     currency: String,
