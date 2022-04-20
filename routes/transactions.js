@@ -445,7 +445,7 @@ async function getWalletBalance(userId) {
   if (getTrans.length > 0) {
     amount = 0
     for (i = 0; i < getTrans.length; i++) {
-      if (getTrans[i].type == "DEPOSIT") {
+      if (getTrans[i].type == "DEPOSIT" || getTrans[i].type == "BONUS") {
         amount += getTrans[i].amount
       }
       else {
@@ -468,7 +468,13 @@ async function getWalletBalanceMongo(userId) {
     {
       $addFields: {
         amountIs: {
-          $cond: { if: { $eq: ['$type', 'DEPOSIT'] }, then: '$amount', else: { $subtract: [0, '$amount'] } }
+          $cond: {
+            if: {
+              $or: [{
+                $eq: ['$type', 'DEPOSIT']
+              }, { $eq: ['$type', 'BONUS'] }]
+            }, then: '$amount', else: { $subtract: [0, '$amount'] }
+          }
         }
       }
     }

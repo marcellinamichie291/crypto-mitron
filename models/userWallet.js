@@ -6,12 +6,12 @@ const userRefToken = mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ["WITHDRAW", "DEPOSIT"]
+        enum: ["WITHDRAW", "DEPOSIT", "BONUS"]
     },
     amount: Number,
     currency: String,
     orderId: String,
-    time: String
+    time: [String]
 }, { timestamps: true });
 
 module.exports = mongoose.model("userWallet", userRefToken);

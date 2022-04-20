@@ -51,12 +51,22 @@ router.post('/signUp', async (req, res, next) => {
 
     await userIs.save();
 
+    let depositBonus = new userWallet({
+      userId: userIs._id,
+      type: "BONUS",
+      amount: process.env.SIGNUP_BONUS,
+      currency: "INR",
+      time: Date.now()
+    })
+
+    await depositBonus.save();
+
     let user = {
       name: name,
       mobileNo: mobileNo
     }
 
-    return res.status(200).json({ isSuccess: true, data: { user: { id: userIs._id, name: userIs.name, role: userIs.role, email: userIs.email } }, message: "user successfully signed up" });
+    return res.status(200).json({ isSuccess: true, data: { user: { id: userIs._id, name: userIs.name, role: userIs.role, email: userIs.email, bonus: depositBonus.amount } }, message: "user successfully signed up" });
   } catch (error) {
     return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
   }
