@@ -40,7 +40,8 @@ router.get('/symbols', async (req, res) => {
         "full_name": checkSymbol[0].fullName, // e.g. BTCE:BTCUSD
         "description": checkSymbol[0].description,
         "exchange": "BINANCE",
-        "pricescale": 100,
+        "minmov": 1,
+        "pricescale": 1,
         "ticker": req.query.symbol,
         "type": "crypto" // or "futures" or "crypto" or "forex" or "index"
       }
