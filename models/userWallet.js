@@ -11,7 +11,7 @@ const userRefToken = mongoose.Schema({
     amount: Number,
     currency: String,
     orderId: String,
-    time: [String]
+    time: String
 }, { timestamps: true });
 
 module.exports = mongoose.model("userWallet", userRefToken);
