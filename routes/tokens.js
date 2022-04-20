@@ -17,40 +17,13 @@ router.get('/', function (req, res, next) {
 
 router.get('/getTokenDetails', async (req, res) => {
     try {
-        let tokens = constants.TOKENS;
-        // let tokenIs = (tokens.map(a => a.token)).toString();
-        // tokenPrices = await getBinance24Change(tokens.toString())
-
-        let tokenIs = [];
-        for (i = 0; i < tokens.length; i++) {
-            const token = tokens[i];
-            const tokenName = token.toUpperCase();
-            const tokenPair = (token + "usdt").toUpperCase();
-            const tokenPrices = await getBinance24Change(tokenPair)
-            // console.log(tokenPrices)
-            let tokenObj = {
-                "token": token,
-                "token_pair": token + "usdt",
-                "name": tokenName,
-                // "label": "Bitcoin",
-                "icon": constants.ICON_BASE_URL + token + ".png",
-                last_price: tokenPrices.data.lastPrice,
-                priceChange: tokenPrices.data.priceChange,
-                change_24h_per: tokenPrices.data.priceChangePercent
-            }
-            tokenIs.push(tokenObj)
+        const response = await getTokensJson();
+        if (response.status == 0) {
+            return res.status(200).json({ isSuccess: true, data: response.resp, messsage: "All Token Details Fetched Successfully" });
         }
-
-        console.log(tokenIs.length)
-        // console.log(tokenIs)
-        // console.log(tokens)
-        // console.log(tokens)
-        let resp = {
-            currency: constants.CURRENCY,
-            banners: constants.BANNER,
-            tokens: tokenIs
+        else {
+            return res.status(200).json({ isSuccess: true, data: null, messsage: "Cannot construct json for tokens" });
         }
-        return res.status(200).json({ isSuccess: true, data: resp, messsage: "All Token Details Fetched Successfully" });
     } catch (error) {
         return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
     }
@@ -164,7 +137,6 @@ router.get('/getTokens', async (req, res) => {
 //for 10 minute==*/10 * * * *
 cron.schedule('0 * * * *', async () => {
     try {
-
         const response = await getTokensJson();
         if (response.status == 0) {
             const resp = response.resp;
