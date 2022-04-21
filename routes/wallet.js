@@ -205,7 +205,7 @@ router.get('/getUserDetails', authenticateToken, async (req, res, next) => {
         }
 
 
-        return res.status(404).json({ isSuccess: false, data: { userId: userId, name: userDetails[0].name, email: userDetails[0].email, USDT: finalToken.USDT, INR: finalToken.INR, walletDetails: finalToken.tokens, walletTransactions: getTrans, tokenTransactions: getAllTransactions }, message: "user not found" });
+        return res.status(200).json({ isSuccess: true, data: { userId: userId, name: userDetails[0].name, email: userDetails[0].email, USDT: finalToken.USDT, INR: finalToken.INR, walletDetails: finalToken.tokens, walletTransactions: getTrans, tokenTransactions: getAllTransactions }, message: "user details found" });
     } catch (error) {
         return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
     }
