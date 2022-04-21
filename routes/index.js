@@ -6,6 +6,7 @@ const binance = new Binance().options({
   APIKEY: process.env.BINANCE_APIKEY,
   APISECRET: process.env.BINANCE_APISECRET
 });
+const client = require('../services/redis-service');
 
 const symbolSchema = require('../models/symbolModel');
 /* GET home page. */
@@ -66,11 +67,16 @@ router.get('/history', async (req, res) => {
     const fromIs = from * 1000;
     const toIs = to * 1000;
     const binance = new Binance().options();
-    binance.candlesticks(symbol.toUpperCase() + "USDT", "1d", (error, ticks, symbol) => {
+    binance.candlesticks(symbol.toUpperCase() + "USDT", "1d", async (error, ticks, symbol) => {
+      console.log(error);
+      console.log(ticks.length);
+      console.log(symbol)
       if (error || (ticks == undefined || ticks.length == 0)) {
+        const response = JSON.parse(await client.get("tokenInformationsLast"));
+        const data = response.find((e) => { return e.symbol == symbol })
         return res.status(200).json({
           s: "no_data",
-          nextTime: 1386493512
+          nextTime: parseInt((data.closeTime) / 1000)
         });
       }
       var t1 = new Date().getTime();

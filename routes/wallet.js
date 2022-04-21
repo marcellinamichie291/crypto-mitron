@@ -3,6 +3,7 @@ var router = express.Router();
 const { default: mongoose } = require('mongoose');
 const Binance = require('node-binance-api');
 const cron = require('node-cron');
+const axios = require('axios')
 const binance = new Binance().options({
     APIKEY: process.env.BINANCE_APIKEY,
     APISECRET: process.env.BINANCE_APISECRET
@@ -148,6 +149,68 @@ router.get('/getDetails', authenticateToken, async function (req, res) {
     }
 });
 
+router.get('/getUserDetails', authenticateToken, async (req, res, next) => {
+    try {
+        const userId = req.user._id;
+
+        let userDetails = await userSchema.aggregate([
+            {
+                $match: {
+                    _id: mongoose.Types.ObjectId(userId)
+                }
+            }
+        ]);
+        //get users wallet transaction
+        let getTrans = await userWallet.aggregate([
+            {
+                $match: {
+                    userId: mongoose.Types.ObjectId(userId)
+                }
+            },
+            {
+                $project: {
+                    id: "$_id",
+                    type: 1,
+                    amount: 1,
+                    currency: 1,
+                    _id: 0
+                }
+            }
+        ]);
+
+        let getAllTransactions = await transactionSchema.aggregate([
+            {
+                $match: {
+                    userId: mongoose.Types.ObjectId(userId)
+                }
+            },
+            {
+                $addFields: {
+                    id: "$_id"
+                }
+            },
+            {
+                $project: {
+                    userId: 0,
+                    _id: 0,
+                    __v: 0
+                }
+            }
+        ])
+        finalToken = { USDT: 0, INR: 0, tokens: [] }
+        if (getAllTransactions.length > 0) {
+            let getResults = await toWalletRes(userId, getAllTransactions);
+            finalToken = await getAssetWithUSDTINR(getResults.tokens)
+            // console.log(finalToken);
+        }
+
+
+        return res.status(404).json({ isSuccess: false, data: { userId: userId, name: userDetails[0].name, email: userDetails[0].email, USDT: finalToken.USDT, INR: finalToken.INR, walletDetails: finalToken.tokens, walletTransactions: getTrans, tokenTransactions: getAllTransactions }, message: "user not found" });
+    } catch (error) {
+        return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
+    }
+})
+
 async function getAssetWithUSDTINR(tokenIs) {
     // console.log("get inr and usdt")
     allAsset = []
@@ -292,7 +355,27 @@ async function getWalletBalance(userId) {
     }
     return 0;
 }
-
+async function setSymbolData(tokens) {
+    try {
+        const url = `https://api.binance.com/api/v3/ticker/24hr`
+        // console.log(url)
+        const response = await axios.get(url)
+        // console.log(response)
+        if (response.status == 200) {
+            client.set("tokenInformationsLast", JSON.stringify(response.data), function (err, reply) {
+                console.log(err.message)
+                console.log(reply);
+            });
+        }
+        else {
+            return { status: 1 };;
+        }
+    }
+    catch (err) {
+        // console.log(tokens)
+        console.log(err.message)
+    }
+}
 cron.schedule('*/10 * * * * *', async () => {
     try {
         pricesToken = await binance.prices();
@@ -301,6 +384,7 @@ cron.schedule('*/10 * * * * *', async () => {
             console.log(reply);
         });
         await setFeaturedData();
+        await setSymbolData();
         console.log("prices updated  " + Date.now())
     } catch (error) {
         console.log(error.message ||
