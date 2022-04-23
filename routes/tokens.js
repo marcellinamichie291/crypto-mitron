@@ -56,7 +56,7 @@ router.get('/getTopGainers', async (req, res) => {
             }
         }
 
-        console.log(tokenIs.length)
+        // console.log(tokenIs.length)
         // console.log(tokenIs)
         // console.log(tokens)
         // console.log(tokens)

@@ -55,7 +55,7 @@ router.get('/getDetailsSlow', authenticateToken, async function (req, res) {
         if (getAllTransactions.length > 0) {
             console.log("data find" + Date.now());
             let getResults = await toWalletRes(userId, getAllTransactions);
-            console.log(getResults);
+            // console.log(getResults);
             console.log("token" + Date.now())
             const finalToken = await getAssetWithUSDTINR(getResults.tokens)
             console.log("calculatedDone" + Date.now());
@@ -227,11 +227,11 @@ async function getAssetWithUSDTINR(tokenIs) {
     //loop for finding usdt and inr prices
     for (i = 0; i < keys.length; i++) {
         token = keys[i] + "USDT";
-        console.log(token)
+        // console.log(token)
         // console.log(prices)
         if (token in prices) {
             console.log("price is")
-            console.log(prices[token])
+            // console.log(prices[token])
             USDT = prices[token] * tokenIs[keys[i]]
             INR = USDT * parseInt(process.env.USDT_PRICE);
             usdt += USDT;
@@ -325,7 +325,7 @@ async function setFeaturedData() {
 
             client.set(symbol, JSON.stringify(open), function (err, reply) {
                 console.log(err.message)
-                console.log(reply);
+                // console.log(reply);
             });
         }, { limit: 15 });
     }
