@@ -33,7 +33,7 @@ router.get('/symbols', async (req, res) => {
       }
     }
   ]);
-  console.log(checkSymbol.length)
+  // console.log(checkSymbol.length)
   if (checkSymbol.length > 0) {
     return res.status(200).json(
       {
@@ -69,8 +69,8 @@ router.get('/history', async (req, res) => {
     const binance = new Binance().options();
     binance.candlesticks(symbol.toUpperCase() + "USDT", "1d", async (error, ticks, symbol) => {
       console.log(error);
-      console.log(ticks.length);
-      console.log(symbol)
+      // console.log(ticks.length);
+      // console.log(symbol)
       if (error || (ticks == undefined || ticks.length == 0)) {
         const response = JSON.parse(await client.get("tokenInformationsLast"));
         const data = response.find((e) => { return e.symbol == symbol })

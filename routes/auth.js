@@ -32,11 +32,11 @@ router.post('/signUpWithGoogle', async (req, res, next) => {
         getAuth()
             .verifyIdToken(idToken, checkRevoked)
             .then(async (payload) => {
-                console.log(payload)
+                // console.log(payload)
                 console.log("token is valid in payload")
                 // Token is valid.
                 const { name, email, password, mobileNo, role } = payload;
-                console.log(email.toString())
+                // console.log(email.toString())
                 let checkExist = await userSchema.aggregate([
                     {
                         $match: {
@@ -86,7 +86,16 @@ router.post('/signUpWithGoogle', async (req, res, next) => {
                     timestamp: Date.now()
                 }
                 const { generatedToken, refreshToken } = await generateAccessToken(user);
-                return res.status(200).json({ isSuccess: true, data: { user: { email: userIs.email, name: userIs.name, id: userIs._id, role: userIs.role, bonus: depositBonus.amount }, token: generatedToken, refreshToken: refreshToken }, message: "user successfully signed up" });
+                return res.status(200).json({
+                    isSuccess: true, data: {
+                        user: {
+                            email: userIs.email, name: userIs.name, id: userIs._id, role: userIs.role, message: {
+                                header: "Congratulations!",
+                                body: "You got a signup bonus of Rs " + depositBonus.amount
+                            }
+                        }, token: generatedToken, refreshToken: refreshToken
+                    }, message: "user successfully signed up"
+                });
             })
             .catch((error) => {
                 console.log(error.message)

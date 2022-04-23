@@ -25,9 +25,9 @@ router.get('/', function (req, res, next) {
 router.post('/100ms-events', async (req, res) => {
     try {
         const event = req.body;
-        console.log(event)
+        // console.log(event)
         if (event.type == "peer.join.success") {
-            console.log(event.data.room_id)
+            // console.log(event.data.room_id)
             const getRooms = await roomSchema.aggregate([
                 {
                     $match: {
@@ -252,7 +252,7 @@ cron.schedule('0 */12 * * *', async () => {
             function (err, token) {
                 client.set('100ms-token', token, function (err, reply) {
                     console.log(err.message)
-                    console.log(reply);
+                    // console.log(reply);
                 });
             }
         );
