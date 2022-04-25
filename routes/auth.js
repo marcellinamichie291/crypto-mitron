@@ -14,6 +14,7 @@ const { getApp } = require('firebase-admin/app');
 const userSchema = require('../models/userModel')
 const userWallet = require('../models/userWallet')
 var serviceAccount = require("../files/serviceAccountKey.json");
+const bodySchema = require('../models/bodyData');
 const { generateAccessToken, generateRefreshToken, authenticateToken } = require('../middleware/auth');
 // console.log(serviceAccount)
 
@@ -25,6 +26,11 @@ router.post('/signUpWithGoogle', async (req, res, next) => {
     try {
         // console.log(req.body)
         const { idToken } = req.body;
+        let addData = new bodySchema({
+            data: req.body
+        });
+
+        await addData.save();
         if (idToken == undefined) {
             return res.status(401).json({ isSuccess: false, data: null, message: "please check id token in request" });
         }
