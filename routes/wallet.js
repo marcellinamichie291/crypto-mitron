@@ -143,6 +143,10 @@ router.get('/getDetails', authenticateToken, async function (req, res) {
             // console.log(finalTokenPrice)
             return res.status(200).json({ isSuccess: true, data: { userId: userId, ...finalToken }, message: "Transaction Found successfully" });
         }
+        const balance = await getWalletBalance(userId);
+        if (balance > 0) {
+            return res.status(200).json({ isSuccess: true, data: { userId: userId, USDT: balance / parseInt(process.env.USDT_PRICE), INR: balance, tokens: [{ token: "INR", quantity: balance, USDT: balance / parseInt(process.env.USDT_PRICE), INR: balance, icon: constants.ICON_BASE_URL + "inr.png" }] }, message: "Transaction Found successfully" });
+        }
         return res.status(200).json({ isSuccess: true, data: { userId: userId, USDT: 0, INR: 0, tokens: [] }, message: "No any transactions found" });
     } catch (error) {
         return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
@@ -202,6 +206,10 @@ router.get('/getUserDetails', authenticateToken, async (req, res, next) => {
             let getResults = await toWalletRes(userId, getAllTransactions);
             finalToken = await getAssetWithUSDTINR(getResults.tokens)
             // console.log(finalToken);
+        }
+        const balance = await getWalletBalance(userId);
+        if (balance > 0) {
+            finalToken = { userId: userId, USDT: balance / parseInt(process.env.USDT_PRICE), INR: balance, tokens: [{ token: "INR", quantity: balance, USDT: balance / parseInt(process.env.USDT_PRICE), INR: balance, icon: constants.ICON_BASE_URL + "inr.png" }] };
         }
 
 
@@ -303,6 +311,9 @@ async function toWalletRes(userId, dbResult) {
         tokenMap.set(debitToken, debitTokenAmount);
         tokenMap.set(creditToken, creditTokenAmount);
         // console.log(tokenMap)
+    }
+    if (dbResult.length == 0) {
+        tokenMap.has("INR") ? "" : tokenMap.set("INR", balance)
     }
     var tokens = Object.fromEntries(tokenMap);
     transRes.tokens = tokens;
