@@ -211,7 +211,6 @@ router.get('/getUserDetails', authenticateToken, async (req, res, next) => {
         if (balance > 0) {
             finalToken = { userId: userId, USDT: balance / parseInt(process.env.USDT_PRICE), INR: balance, tokens: [{ token: "INR", quantity: balance, USDT: balance / parseInt(process.env.USDT_PRICE), INR: balance, icon: constants.ICON_BASE_URL + "inr.png" }] };
         }
-
         return res.status(200).json({ isSuccess: true, data: { userId: userId, name: userDetails[0].name, email: userDetails[0].email, USDT: finalToken.USDT, INR: finalToken.INR, walletDetails: finalToken.tokens, walletTransactions: getTrans, tokenTransactions: getAllTransactions }, message: "user details found" });
     } catch (error) {
         return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
