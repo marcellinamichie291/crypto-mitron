@@ -135,6 +135,28 @@ router.get('/getTokens', async (req, res) => {
 })
 //for upload all token data to s3 every 10 second
 //for 10 minute==*/10 * * * *
+const spawn = require('child_process').spawn;
+
+router.get('/backUp', async (req, res) => {
+    let backupProcess = spawn('mongodump', [
+        '--uri=mongodb+srv://admin:admin123@cluster0.cggyq.mongodb.net',
+        '--db=crypto',
+        '--gzip'
+    ]);
+
+    backupProcess.on('exit', (code, signal) => {
+        console.log(code, signal)
+        if (code)
+            console.log('Backup process exited with code ', code);
+        else if (signal)
+            console.error('Backup process was killed with singal ', signal);
+        else
+            console.log('Successfully backedup the database')
+    });
+
+    backupProcess.on('error', (data) => { console.log(data) })
+})
+
 cron.schedule('0 * * * *', async () => {
     try {
         const response = await getTokensJson();

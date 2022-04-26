@@ -70,9 +70,9 @@ router.get('/getDetailsSlow', authenticateToken, async function (req, res) {
 
 router.get('/getDetails', authenticateToken, async function (req, res) {
     try {
-        // var userId = req.params.userId;
-
-        const userId = req.user._id;
+        var userId = req.query.userId;
+        // console.log(userId)
+        // const userId = req.user._id;
         console.log("data find first" + Date.now());
         let getAllTransactions = await transactionSchema.aggregate([
             {
@@ -143,6 +143,10 @@ router.get('/getDetails', authenticateToken, async function (req, res) {
             // console.log(finalTokenPrice)
             return res.status(200).json({ isSuccess: true, data: { userId: userId, ...finalToken }, message: "Transaction Found successfully" });
         }
+        const balance = await getWalletBalance(userId);
+        if (balance > 0) {
+            return res.status(200).json({ isSuccess: true, data: { userId: userId, USDT: balance / parseInt(process.env.USDT_PRICE), INR: balance, tokens: [{ token: "INR", quantity: balance, USDT: balance / parseInt(process.env.USDT_PRICE), INR: balance, icon: constants.ICON_BASE_URL + "inr.png" }] }, message: "Transaction Found successfully" });
+        }
         return res.status(200).json({ isSuccess: true, data: { userId: userId, USDT: 0, INR: 0, tokens: [] }, message: "No any transactions found" });
     } catch (error) {
         return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
@@ -151,8 +155,8 @@ router.get('/getDetails', authenticateToken, async function (req, res) {
 
 router.get('/getUserDetails', authenticateToken, async (req, res, next) => {
     try {
-        const userId = req.user._id;
-
+        // const userId = req.user._id;
+        const userId = req.query.userId
         let userDetails = await userSchema.aggregate([
             {
                 $match: {
@@ -203,7 +207,10 @@ router.get('/getUserDetails', authenticateToken, async (req, res, next) => {
             finalToken = await getAssetWithUSDTINR(getResults.tokens)
             // console.log(finalToken);
         }
-
+        const balance = await getWalletBalance(userId);
+        if (balance > 0) {
+            finalToken = { userId: userId, USDT: balance / parseInt(process.env.USDT_PRICE), INR: balance, tokens: [{ token: "INR", quantity: balance, USDT: balance / parseInt(process.env.USDT_PRICE), INR: balance, icon: constants.ICON_BASE_URL + "inr.png" }] };
+        }
 
         return res.status(200).json({ isSuccess: true, data: { userId: userId, name: userDetails[0].name, email: userDetails[0].email, USDT: finalToken.USDT, INR: finalToken.INR, walletDetails: finalToken.tokens, walletTransactions: getTrans, tokenTransactions: getAllTransactions }, message: "user details found" });
     } catch (error) {
@@ -286,8 +293,6 @@ async function toWalletRes(userId, dbResult) {
     transRes.userId = userId;
     var transactions = [];
     for (var i = 0; i < dbResult.length; i++) {
-
-
         var transaction = {};
         var debitToken = dbResult[i].debitToken;
         var creditToken = dbResult[i].creditToken;
@@ -304,9 +309,12 @@ async function toWalletRes(userId, dbResult) {
         tokenMap.set(creditToken, creditTokenAmount);
         // console.log(tokenMap)
     }
+    if (dbResult.length == 0) {
+        tokenMap.has("INR") ? "" : tokenMap.set("INR", balance)
+    }
     var tokens = Object.fromEntries(tokenMap);
     transRes.tokens = tokens;
-    // console.log(transRes);
+    console.log(transRes);
     return transRes;
 }
 async function setFeaturedData() {
