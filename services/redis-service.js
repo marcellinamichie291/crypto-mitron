@@ -5,4 +5,5 @@ client.connect();
 client.on('connect', function () {
     console.log('Connected!');
 });
+client.on('error', (err) => { console.log(err) });
 module.exports = client
