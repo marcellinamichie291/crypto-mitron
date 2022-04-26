@@ -22,7 +22,9 @@ router.get('/config', (req, res) => {
     supports_timescale_marks: false,
   })
 })
-
+router.get('/ping', (req, res) => {
+  res.send("pong");
+})
 router.get('/symbols', async (req, res) => {
   const { symbol } = req.query;
 
