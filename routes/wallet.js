@@ -70,9 +70,9 @@ router.get('/getDetailsSlow', authenticateToken, async function (req, res) {
 
 router.get('/getDetails', authenticateToken, async function (req, res) {
     try {
-        var userId = req.query.userId;
+        // var userId = req.query.userId;
         // console.log(userId)
-        // const userId = req.user._id;
+        const userId = req.user._id;
         console.log("data find first" + Date.now());
         let getAllTransactions = await transactionSchema.aggregate([
             {
@@ -155,8 +155,8 @@ router.get('/getDetails', authenticateToken, async function (req, res) {
 
 router.get('/getUserDetails', authenticateToken, async (req, res, next) => {
     try {
-        // const userId = req.user._id;
-        const userId = req.query.userId
+        const userId = req.user._id;
+        // const userId = req.query.userId
         let userDetails = await userSchema.aggregate([
             {
                 $match: {
