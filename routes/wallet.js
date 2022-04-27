@@ -33,6 +33,10 @@ router.get('/get', authenticateToken, async function (req, res) {
             let getResults = await toWalletRes(userId, getAllTransactions);
             return res.status(200).json({ isSuccess: true, data: getResults, message: "Transaction Found successfully" });
         }
+        const balance = await getWalletBalance(userId);
+        if (balance > 0) {
+            return res.status(200).json({ isSuccess: true, data: { userId: userId, tokens: { INR: balance }, message: "Transaction Found successfully" } });
+        }
         return res.status(200).json({ isSuccess: true, data: { userId: userId, tokens: {} }, message: "No any transactions found" });
     } catch (error) {
         return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
@@ -137,6 +141,7 @@ router.get('/getDetails', authenticateToken, async function (req, res) {
 
             let getResults = await toWalletRes(userId, getAllTransactions);
             // console.log(getResults);
+            // console.log(getResults);
             console.log("token" + Date.now())
             const finalToken = await getAssetWithUSDTINR(getResults.tokens)
             console.log("calculatedDone" + Date.now());
@@ -208,7 +213,7 @@ router.get('/getUserDetails', authenticateToken, async (req, res, next) => {
             // console.log(finalToken);
         }
         const balance = await getWalletBalance(userId);
-        if (balance > 0) {
+        if (getAllTransactions.length == 0 && balance > 0) {
             finalToken = { userId: userId, USDT: balance / parseInt(process.env.USDT_PRICE), INR: balance, tokens: [{ token: "INR", quantity: balance, USDT: balance / parseInt(process.env.USDT_PRICE), INR: balance, icon: constants.ICON_BASE_URL + "inr.png" }] };
         }
         return res.status(200).json({ isSuccess: true, data: { userId: userId, name: userDetails[0].name, email: userDetails[0].email, USDT: finalToken.USDT, INR: finalToken.INR, walletDetails: finalToken.tokens, walletTransactions: getTrans, tokenTransactions: getAllTransactions }, message: "user details found" });
@@ -287,6 +292,7 @@ async function getAssetWithUSDTINR(tokenIs) {
 //
 async function toWalletRes(userId, dbResult) {
     const balance = await getWalletBalance(userId);
+    console.log(balance)
     var tokenMap = new Map();
     var transRes = {};
     transRes.userId = userId;
@@ -313,7 +319,7 @@ async function toWalletRes(userId, dbResult) {
     }
     var tokens = Object.fromEntries(tokenMap);
     transRes.tokens = tokens;
-    console.log(transRes);
+    // console.log(transRes);
     return transRes;
 }
 async function setFeaturedData() {
