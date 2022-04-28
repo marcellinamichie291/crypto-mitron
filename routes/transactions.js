@@ -128,11 +128,18 @@ router.post('/create', authenticateToken, async function (req, res) {
     let createTransaction = new transactionSchema({ userId: userId, debitToken: debitToken, debitAmount: debitAmount, creditToken: creditToken, creditAmount: checkQuantityIs, transactionDate: transactionDate, status: status });
 
     await createTransaction.save();
+    let transactionIs = {
+      debitToken: createTransaction.debitToken,
+      debitAmount: createTransaction.debitAmount,
+      creditToken: createTransaction.creditToken,
+      creditAmount: createTransaction.creditAmount,
+      id: createTransaction._id
+    }
     const authHeader = req.headers.authorization;
     const tokenIs = authHeader && authHeader.split(' ')[1];
     const response = await getUserDetails(fullUrl, tokenIs);
     if (response.status == 0) {
-      return res.status(200).json({ isSuccess: true, data: { ...response.data.data, transactions: createTransaction }, message: "Transaction stored successfully" });
+      return res.status(200).json({ isSuccess: true, data: { ...response.data.data, transaction: transactionIs }, message: "Transaction stored successfully" });
     }
     else {
       return res.status(200).json({ isSuccess: true, data: { userId: userId, transactions: createTransaction }, message: "Balance Updated And cannot get details of user" });
