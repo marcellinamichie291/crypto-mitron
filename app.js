@@ -28,6 +28,7 @@ app.set('view engine', 'ejs');
 app.get('/success', (req, res) => res.send(userProfile));
 app.get('/error', (req, res) => res.send("error logging in"));
 app.use(cors({ origin: true }));
+app.enable('trust proxy');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(bodyParser.json());

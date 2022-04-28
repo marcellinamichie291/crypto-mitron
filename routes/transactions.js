@@ -320,7 +320,7 @@ async function getAssetWithUSDTINR(tokenIs) {
 async function getUserDetails(urlIs, token) {
   try {
     const url = `${urlIs}/wallet/getUserDetails`
-    console.log(url)
+    // console.log(url)
     const response = await axios.get(url, { headers: { Authorization: "Bearer " + token } })
     // console.log(response)
     if (response.status == 200) {
