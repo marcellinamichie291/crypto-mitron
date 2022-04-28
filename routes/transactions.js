@@ -90,10 +90,10 @@ router.post('/token-generate-app', async (req, res) => {
 
 router.post('/create', authenticateToken, async function (req, res) {
   try {
-
     const { debitToken, creditToken, debitAmount, transactionDate, status } = req.body;
 
     const userId = req.user._id;
+    var fullUrl = req.protocol + '://' + req.get('host');
 
     const checkQuantityIs = await calculateQuantity(debitToken, debitAmount, creditToken)
 
@@ -115,9 +115,6 @@ router.post('/create', authenticateToken, async function (req, res) {
     if (userWalletBalance[debitToken] < debitAmount) {
       return res.status(400).json({ isSuccess: false, data: null, message: "User does not have sufficient balance" });
     }
-
-    console.log("check after balance" + Date.now())
-
     // }
     // else {
     //   const balanceIs = await getWalletBalanceMongo(userId);
@@ -131,7 +128,15 @@ router.post('/create', authenticateToken, async function (req, res) {
     let createTransaction = new transactionSchema({ userId: userId, debitToken: debitToken, debitAmount: debitAmount, creditToken: creditToken, creditAmount: checkQuantityIs, transactionDate: transactionDate, status: status });
 
     await createTransaction.save();
-    return res.status(200).json({ isSuccess: true, data: { userId: userId, transactions: createTransaction }, message: "Transaction stored successfully" });
+    const authHeader = req.headers.authorization;
+    const tokenIs = authHeader && authHeader.split(' ')[1];
+    const response = await getUserDetails(fullUrl, tokenIs);
+    if (response.status == 0) {
+      return res.status(200).json({ isSuccess: true, data: { ...response.data.data, transactions: createTransaction }, message: "Transaction stored successfully" });
+    }
+    else {
+      return res.status(200).json({ isSuccess: true, data: { userId: userId, transactions: createTransaction }, message: "Balance Updated And cannot get details of user" });
+    }
   } catch (error) {
     return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
   }
@@ -311,6 +316,24 @@ async function getAssetWithUSDTINR(tokenIs) {
   }
   // console.log(allAsset)
   return allAsset;
+}
+async function getUserDetails(urlIs, token) {
+  try {
+    const url = `${urlIs}/wallet/getUserDetails`
+    // console.log(url)
+    const response = await axios.get(url, { headers: { Authorization: "Bearer " + token } })
+    // console.log(response)
+    if (response.status == 200) {
+      return { status: 0, data: response.data };
+    }
+    else {
+      return { status: 1 };
+    }
+  }
+  catch (err) {
+    // console.log(tokens)
+    return { status: 2 };
+  }
 }
 async function getAssetPrice() {
   let price = await binance.prices((error, price) => {
