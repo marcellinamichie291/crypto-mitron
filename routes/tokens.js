@@ -6,8 +6,9 @@ const cron = require('node-cron');
 const Binance = require('node-binance-api');
 const binance = new Binance().options();
 const symbolSchema = require('../models/symbolModel');
-const { uploadJson } = require('../utils/aws-uploads');
+const { uploadJson, uploadBackUp } = require('../utils/aws-uploads');
 const client = require('../services/redis-service');
+const path = require('path');
 
 require("dotenv").config();
 /* GET home page. */
@@ -138,23 +139,32 @@ router.get('/getTokens', async (req, res) => {
 const spawn = require('child_process').spawn;
 
 router.get('/backUp', async (req, res) => {
-    let backupProcess = spawn('mongodump', [
-        '--uri=mongodb+srv://admin:admin123@cluster0.cggyq.mongodb.net',
-        '--db=crypto',
-        '--gzip'
-    ]);
-
-    backupProcess.on('exit', (code, signal) => {
-        console.log(code, signal)
-        if (code)
-            console.log('Backup process exited with code ', code);
-        else if (signal)
-            console.error('Backup process was killed with singal ', signal);
-        else
-            console.log('Successfully backedup the database')
+    const testFolder = path.join(__dirname, '../', 'dump', 'crypto');
+    const fs = require('fs');
+    // console.log(testFolder)
+    fs.readdir(testFolder, async (err, files) => {
+        // console.log(files);
+        for (i = 0; i < files.length; i++) {
+            await uploadBackUp(files[i])
+        }
     });
+    // let backupProcess = spawn('mongodump', [
+    //     '--uri=mongodb+srv://admin:admin123@cluster0.cggyq.mongodb.net',
+    //     '--db=crypto',
+    //     '--gzip'
+    // ]);
 
-    backupProcess.on('error', (data) => { console.log(data) })
+    // backupProcess.on('exit', (code, signal) => {
+    //     console.log(code, signal)
+    //     if (code)
+    //         console.log('Backup process exited with code ', code);
+    //     else if (signal)
+    //         console.error('Backup process was killed with singal ', signal);
+    //     else
+    //         console.log('Successfully backedup the database')
+    // });
+
+    // backupProcess.on('error', (data) => { console.log(data) })
 })
 
 cron.schedule('0 * * * *', async () => {
@@ -164,7 +174,7 @@ cron.schedule('0 * * * *', async () => {
             const resp = response.resp;
             var buf = Buffer.from(JSON.stringify(resp));
             const responseIs = await uploadJson(buf)
-            // console.log("uploaded")
+            console.log("uploaded")
             // console.log(responseIs)
             // return res.status(200).json({ IsSuccess: true, Data: resp, Messsage: "top loosers by 24 hour change" });
         }
