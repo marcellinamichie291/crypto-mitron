@@ -139,32 +139,43 @@ router.get('/getTokens', async (req, res) => {
 const spawn = require('child_process').spawn;
 
 router.get('/backUp', async (req, res) => {
-    const testFolder = path.join(__dirname, '../', 'dump', 'crypto');
-    const fs = require('fs');
-    // console.log(testFolder)
-    fs.readdir(testFolder, async (err, files) => {
-        // console.log(files);
-        for (i = 0; i < files.length; i++) {
-            await uploadBackUp(files[i])
-        }
-    });
-    // let backupProcess = spawn('mongodump', [
-    //     '--uri=mongodb+srv://admin:admin123@cluster0.cggyq.mongodb.net',
-    //     '--db=crypto',
-    //     '--gzip'
-    // ]);
+    try {
+        let backupProcess = spawn('mongodump', [
+            '--uri=mongodb+srv://admin:admin123@cluster0.cggyq.mongodb.net',
+            '--db=crypto',
+            '--gzip'
+        ]);
 
-    // backupProcess.on('exit', (code, signal) => {
-    //     console.log(code, signal)
-    //     if (code)
-    //         console.log('Backup process exited with code ', code);
-    //     else if (signal)
-    //         console.error('Backup process was killed with singal ', signal);
-    //     else
-    //         console.log('Successfully backedup the database')
-    // });
+        backupProcess.on('exit', (code, signal) => {
+            console.log(code, signal)
+            if (code)
+                console.log('Backup process exited with code ', code);
+            else if (signal)
+                console.error('Backup process was killed with singal ', signal);
+            else {
+                const testFolder = path.join(__dirname, '../', 'dump', 'crypto');
+                const fs = require('fs');
+                // console.log(testFolder)
+                fs.readdir(testFolder, async (err, files) => {
+                    // console.log(files);
+                    for (i = 0; i < files.length; i++) {
+                        await uploadBackUp(files[i])
+                    }
+                });
+                console.log('Successfully backedup the database')
+            }
+        });
 
-    // backupProcess.on('error', (data) => { console.log(data) })
+        backupProcess.on('error', (data) => { console.log(data) })
+        return res.status(200).json({ isSuccess: true, data: [], messsage: "back up done" });
+
+    } catch (error) {
+        console.log(error.message ||
+            "Having issue")
+        return res.status(500).json({ isSuccess: false, data: [], messsage: error.message || "Having issue is server" })
+
+    }
+
 })
 
 cron.schedule('0 * * * *', async () => {
