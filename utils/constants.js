@@ -8,5 +8,8 @@ module.exports = {
         "https://bitron-test.s3.ap-south-1.amazonaws.com/banner/banner4.png"
     ],
     CURRENCY: "INR",
-    ICON_BASE_URL: "https://bitron-test.s3.ap-south-1.amazonaws.com/icons/"
+    ICON_BASE_URL: "https://bitron-test.s3.ap-south-1.amazonaws.com/icons/",
+    TIMER_PAYMENT: 300,
+    PAYMENT_VERIFY: "Async",
+    MODE: "UPI"
 }
