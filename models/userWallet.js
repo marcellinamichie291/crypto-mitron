@@ -11,6 +11,7 @@ const userRefToken = mongoose.Schema({
     amount: Number,
     currency: String,
     orderId: String,
+    transactionId: { type: mongoose.Types.ObjectId, ref: "payment" },
     time: String
 }, { timestamps: true });
 
