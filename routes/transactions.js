@@ -114,20 +114,23 @@ router.post('/create', authenticateToken, async function (req, res) {
     if (userWalletBalance[debitToken] < debitAmount) {
       return res.status(400).json({ isSuccess: false, data: null, message: "User does not have sufficient balance" });
     }
-    // }
-    // else {
-    //   const balanceIs = await getWalletBalanceMongo(userId);
-    //   // console.log(balanceIs)
-    //   if (balanceIs[0].totalAmount < debitAmount) {
-    //     return res.status(400).json({ isSuccess: false, data: null, message: "User does not have sufficient balance" });
-    //   }
-
-    // }
 
     let createTransaction = new transactionSchema({ userId: userId, debitToken: debitToken, debitAmount: debitAmount, creditToken: creditToken, creditAmount: checkQuantityIs, transactionDate: transactionDate, status: status });
 
     await createTransaction.save();
-    return res.status(200).json({ isSuccess: true, data: { userId: userId, transactions: createTransaction }, message: "Balance Updated And cannot get details of user" });
+    delete createTransaction.__v;
+    createTransaction.id = createTransaction._id;
+    delete createTransaction._id;
+    return res.status(200).json({
+      isSuccess: true, data: {
+        "userId": createTransaction.userId,
+        "debitToken": createTransaction.debitToken,
+        "debitAmount": createTransaction.debitAmount,
+        "creditToken": createTransaction.creditToken,
+        "creditAmount": createTransaction.creditAmount,
+        "id": createTransaction._id,
+      }, message: "transaction created successfully"
+    });
   } catch (error) {
     return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
   }
