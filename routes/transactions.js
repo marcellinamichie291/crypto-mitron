@@ -237,7 +237,7 @@ router.get('/get/', authenticateToken, async function (req, res) {
     if (getAllTransactions.length > 0) {
       let getResults = {
         userId: userId,
-        transactions: getAllTransactions
+        transactions: getAllTransactions.reverse()
       }
       // let getResultsFor = toTransRes(userId, getAllTransactions);
       return res.status(200).json({ isSuccess: true, data: getResults, messsage: "Transaction stored successfully" });
@@ -265,7 +265,7 @@ router.get('/wallet/', authenticateToken, async function (req, res) {
       }
     ]);
     if (getAllTransactions.length > 0) {
-      let getResults = await toWalletRes(userId, getAllTransactions);
+      let getResults = await toWalletRes(userId, getAllTransactions.reverse());
       // console.log(getResultIs);
       return res.status(200).json({ isSuccess: true, data: getResults, messsage: "Transaction Found successfully" });
     }
