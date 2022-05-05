@@ -95,6 +95,18 @@ router.post('/create', authenticateToken, async function (req, res) {
     var fullUrl = req.protocol + '://' + req.get('host');
 
     const checkQuantityIs = await calculateQuantity(debitToken, debitAmount, creditToken)
+    // console.log(checkQuantityIs)
+    // return;
+    if (checkQuantityIs == undefined) {
+      return res.status(200).json({ isSuccess: false, data: null, message: "Sorry can not convert currency pairs please contact help desk" });
+    }
+    // return res.json({ data: checkQuantityIs });
+    //check for creditToken if it is INR then get as creditToken and check for qty of debitToken 
+
+
+
+
+    //check for 
 
     // return;
     // if (debitToken != "INR") {
@@ -107,7 +119,8 @@ router.post('/create', authenticateToken, async function (req, res) {
       }
     ]);
     const userWalletBalance = (await toWalletRes(userId, getAllTransactions)).tokens;
-    console.log(userWalletBalance);
+    // console.log(userWalletBalance);
+    // return;
     if (userWalletBalance[debitToken] == undefined) {
       return res.status(400).json({ isSuccess: false, data: null, message: "User does not have sufficient balance" });
     }
@@ -118,9 +131,6 @@ router.post('/create', authenticateToken, async function (req, res) {
     let createTransaction = new transactionSchema({ userId: userId, debitToken: debitToken, debitAmount: debitAmount, creditToken: creditToken, creditAmount: checkQuantityIs, transactionDate: transactionDate, status: status });
 
     await createTransaction.save();
-    delete createTransaction.__v;
-    createTransaction.id = createTransaction._id;
-    delete createTransaction._id;
     return res.status(200).json({
       isSuccess: true, data: {
         "userId": createTransaction.userId,
@@ -155,7 +165,7 @@ router.post('/createWithDetails', authenticateToken, async function (req, res) {
       }
     ]);
     const userWalletBalance = (await toWalletRes(userId, getAllTransactions)).tokens;
-    console.log(userWalletBalance);
+
     if (userWalletBalance[debitToken] == undefined) {
       return res.status(400).json({ isSuccess: false, data: null, message: "User does not have sufficient balance" });
     }
@@ -424,7 +434,7 @@ async function calculateQuantity(debitToken, debitAmount, creditToken) {
       // console.log(priceIs)
       const exchange = `${creditToken}USDT`//price binance get pair
       const priceToken = await binance.prices(exchange);
-      // console.log(priceToken)
+      console.log(priceToken)
       const quantity = priceIs / parseFloat(priceToken[exchange]);
       // console.log(quantity)
       return quantity.toFixed(5);
@@ -442,13 +452,37 @@ async function calculateQuantity(debitToken, debitAmount, creditToken) {
         // console.log(quantity)
         return quantity.toFixed(5);
       }
+      console.log("no any inr")
       let exchangeIs = creditToken + "" + debitToken;
       // console.log(exchangeIs)
-      const priceToken = await binance.prices(exchangeIs);
+
+      const priceToken = await binance.prices();
+      // return priceToken;
+
+      if (exchangeIs in priceToken) {
+        // console.log(`${creditToken} to ${debitToken}`)
+        // 1 creditToken=how many debitToken
+        //1 ATOM=0.0050 BTC 
+        // console.log(priceToken[exchangeIs])
+        const quantity = debitAmount / parseFloat(priceToken[exchangeIs]);
+        // console.log(quantity)
+        return quantity.toFixed(5);
+      }
+      else if (`${debitToken}${creditToken}` in priceToken) {
+        //1 creditToken = how many debitToken
+
+        // console.log(`${debitToken} to ${creditToken}`)
+        // console.log(priceToken[`${debitToken}${creditToken}`])
+        const quantity = debitAmount * parseFloat(priceToken[`${debitToken}${creditToken}`]);
+        // console.log(quantity)
+        return quantity.toFixed(5);
+      }
+      else {
+        return;
+      }
       // console.log(priceToken)
-      const quantity = debitAmount / parseFloat(priceToken[exchangeIs]);
-      // console.log(quantity)
-      return quantity.toFixed(5);
+      // return priceToken
+
     }
     // let checkCurrency = currency.find((curr) => { return curr.token == toCurrency });
     // const responseIs = await binance.marketBuy("USDBTC", quantity.toFixed(10), (error, response) => {

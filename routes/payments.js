@@ -13,7 +13,7 @@ router.post('/createPayment', authenticateToken, async (req, res) => {
     try {
         const { amount } = req.body;
         const transactionId = crypto.randomBytes(16).toString('hex');
-        let url = `upi://pay?pa=shivank@upi&pn=Shivank&mc=6012&tr=456&tn=${transactionId}&am=${amount}&cu=INR&refUrl=refUrl`
+        let url = `upi://pay?pa=${constants.COMPANY_UPI}&pn=${constants.COMPANY_NAME}&mc=${constants.MERCHANT_CODE}&tn=${transactionId}&am=${amount}&cu=INR`
         // console.log(transactionId)
         let createTransaction = new paymentModel({
             userId: req.user._id,
