@@ -26,7 +26,7 @@ router.post('/createPayment', authenticateToken, async (req, res) => {
 
         await createTransaction.save();
 
-        return res.status(200).json({ isSuccess: true, data: { userId: createTransaction.userId, amount: createTransaction.amount, upiLink: url, type: createTransaction.type, timer: constants.TIMER_PAYMENT }, messsage: "Please make payment" });
+        return res.status(200).json({ isSuccess: true, data: { userId: createTransaction.userId, transactionId: createTransaction.transactionId, amount: createTransaction.amount, upiLink: url, type: createTransaction.type, timer: constants.TIMER_PAYMENT }, messsage: "Please make payment" });
     }
     catch (err) {
         return res.status(500).json({ isSuccess: false, data: null, messsage: err.message || "Having issue is server" })
@@ -73,7 +73,7 @@ router.post('/confirmPayment', authenticateToken, checkRole(['admin']), async (r
             return res.status(200).json({ isSuccess: true, data: { transactionId: update.transactionId, status: update.status }, messsage: message });
 
         }
-        return res.status(200).json({ isSuccess: true, data: null, messsage: "no any transaction found" });
+        return res.status(200).json({ isSuccess: false, data: null, messsage: "Transaction not Found" });
     }
     catch (err) {
         return res.status(500).json({ isSuccess: false, data: null, messsage: err.message || "Having issue is server" })
@@ -101,7 +101,7 @@ router.post('/cancelPayment', authenticateToken, async (req, res) => {
             return res.status(200).json({ isSuccess: true, data: { transactionId: update.transactionId, status: update.status }, messsage: "The payment is cancelled" });
 
         }
-        return res.status(200).json({ isSuccess: true, data: null, messsage: "no any transaction found" });
+        return res.status(200).json({ isSuccess: false, data: null, messsage: "Transaction not Found" });
     }
     catch (err) {
         return res.status(500).json({ isSuccess: false, data: null, messsage: err.message || "Having issue is server" })
@@ -125,7 +125,7 @@ router.get('/checkPaymentStatus', authenticateToken, async (req, res) => {
             return res.status(200).json({ isSuccess: true, data: { transactionId: getTransaction[0].transactionId, status: getTransaction[0].status }, messsage: `The payment is ${getTransaction[0].status}` });
 
         }
-        return res.status(200).json({ isSuccess: true, data: null, messsage: "no any transaction found" });
+        return res.status(200).json({ isSuccess: false, data: null, messsage: "Transaction not Found" });
     }
     catch (err) {
         return res.status(500).json({ isSuccess: false, data: null, messsage: err.message || "Having issue is server" })
