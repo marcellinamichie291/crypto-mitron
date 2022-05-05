@@ -11,5 +11,8 @@ module.exports = {
     ICON_BASE_URL: "https://bitron-test.s3.ap-south-1.amazonaws.com/icons/",
     TIMER_PAYMENT: 300,
     PAYMENT_VERIFY: "Async",
-    MODE: "UPI"
+    MODE: "UPI",
+    COMPANY_UPI: "shivank@upi",
+    COMPANY_NAME: "Shivank",
+    MERCHANT_CODE: 6012
 }
