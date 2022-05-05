@@ -153,7 +153,9 @@ router.post('/createWithDetails', authenticateToken, async function (req, res) {
     var fullUrl = req.protocol + '://' + req.get('host');
 
     const checkQuantityIs = await calculateQuantity(debitToken, debitAmount, creditToken)
-
+    if (checkQuantityIs == undefined) {
+      return res.status(200).json({ isSuccess: false, data: null, message: "Sorry can not convert currency pairs please contact help desk" });
+    }
     // return;
     // if (debitToken != "INR") {
     console.log("check for balance" + Date.now())
