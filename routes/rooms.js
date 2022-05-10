@@ -43,62 +43,69 @@ jwt.sign(
 
 console.log("token updated")
 
-
+// console.log(process.env.APP_100MS_WEBHOOK)
 router.post('/100ms-events', async (req, res) => {
     try {
         const event = req.body;
         // console.log(event)
-        if (event.type == "peer.join.success") {
-            // console.log(event.data.room_id)
-            const getRooms = await roomSchema.aggregate([
-                {
-                    $match: {
-                        $and: [
-                            { userId: mongoose.Types.ObjectId(event.data.user_id) },
-                            { _id: mongoose.Types.ObjectId(event.data.room_id) }
-                        ]
+
+        if (req.headers['authorization'] == process.env.APP_100MS_WEBHOOK) {
+            console.log("valid payload");
+            if (event.type == "peer.join.success") {
+                // console.log(event.data.room_id)
+                const getRooms = await roomSchema.aggregate([
+                    {
+                        $match: {
+                            $and: [
+                                { userId: mongoose.Types.ObjectId(event.data.user_id) },
+                                { _id: mongoose.Types.ObjectId(event.data.room_id) }
+                            ]
+                        }
                     }
+                ]);
+                // console.log(getRooms.length);
+                if (getRooms.length > 0) {
+                    let updateStatus = await roomSchema.findByIdAndUpdate(getRooms[0]._id, { status: "ONGOING" }, { new: true });
+                    // console.log(updateStatus);
                 }
-            ]);
-            // console.log(getRooms.length);
-            if (getRooms.length > 0) {
-                let updateStatus = await roomSchema.findByIdAndUpdate(getRooms[0]._id, { status: "ONGOING" }, { new: true });
-                // console.log(updateStatus);
+            }
+            else if (event.type == "peer.leave.success") {
+                const getRooms = await roomSchema.aggregate([
+                    {
+                        $match: {
+                            $and: [
+                                { userId: mongoose.Types.ObjectId(event.data.user_id) },
+                                { _id: mongoose.Types.ObjectId(event.data.room_id) }
+                            ]
+                        }
+                    }
+                ]);
+                // console.log(getRooms.length);
+                if (getRooms.length > 0) {
+                    let updateStatus = await roomSchema.findByIdAndUpdate(getRooms[0]._id, { status: "FINISHED" }, { new: true });
+                    // console.log(updateStatus);
+                }
+            }
+            else if (event.type == "room.end.success") {
+                const getRooms = await roomSchema.aggregate([
+                    {
+                        $match: {
+                            $and: [
+                                { userId: mongoose.Types.ObjectId(event.data.user_id) },
+                                { _id: mongoose.Types.ObjectId(event.data.room_id) }
+                            ]
+                        }
+                    }
+                ]);
+                // console.log(getRooms.length);
+                if (getRooms.length > 0) {
+                    let updateStatus = await roomSchema.findByIdAndUpdate(getRooms[0]._id, { status: "FINISHED" }, { new: true });
+                    // console.log(updateStatus);
+                }
             }
         }
-        else if (event.type == "peer.leave.success") {
-            const getRooms = await roomSchema.aggregate([
-                {
-                    $match: {
-                        $and: [
-                            { userId: mongoose.Types.ObjectId(event.data.user_id) },
-                            { _id: mongoose.Types.ObjectId(event.data.room_id) }
-                        ]
-                    }
-                }
-            ]);
-            // console.log(getRooms.length);
-            if (getRooms.length > 0) {
-                let updateStatus = await roomSchema.findByIdAndUpdate(getRooms[0]._id, { status: "FINISHED" }, { new: true });
-                // console.log(updateStatus);
-            }
-        }
-        else if (event.type == "room.end.success") {
-            const getRooms = await roomSchema.aggregate([
-                {
-                    $match: {
-                        $and: [
-                            { userId: mongoose.Types.ObjectId(event.data.user_id) },
-                            { _id: mongoose.Types.ObjectId(event.data.room_id) }
-                        ]
-                    }
-                }
-            ]);
-            // console.log(getRooms.length);
-            if (getRooms.length > 0) {
-                let updateStatus = await roomSchema.findByIdAndUpdate(getRooms[0]._id, { status: "FINISHED" }, { new: true });
-                // console.log(updateStatus);
-            }
+        else {
+            console.log("invalid payload");
         }
         res.send("success")
     }
