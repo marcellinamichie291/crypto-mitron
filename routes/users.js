@@ -382,7 +382,7 @@ router.post('/updateWallet', authenticateToken, async (req, res) => {
     return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
   }
 })
-router.get('/getAccount', async (req, res) => {
+router.get('/getAccount', authenticateToken, async (req, res) => {
   try {
     // const userId = req.query.userId;
     const userId = req.user._id
