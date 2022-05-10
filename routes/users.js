@@ -5,8 +5,9 @@ const userKyc = require('../models/userKyc');
 const { generateAccessToken, generateRefreshToken, authenticateToken } = require('../middleware/auth');
 const { default: mongoose } = require('mongoose');
 const userWallet = require('../models/userWallet');
-
+const instance = require('../services/razorpay-setup');
 const bodySchema = require('../models/bodyData');
+const userAccount = require('../models/userAccount');
 
 
 
@@ -80,7 +81,104 @@ router.post('/signUp', async (req, res, next) => {
     return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
   }
 })
+router.post('/signUpRazor', async (req, res, next) => {
+  try {
+    const { name, email, password, mobileNo, role } = req.body;
 
+    let checkExist = await userSchema.aggregate([
+      {
+        $match: {
+          $or: [
+            { mobileNo: mobileNo },
+            { email: email }
+          ]
+        }
+      }
+    ]);
+
+    if (checkExist.length > 0) {
+      return res.status(409).json({ isSuccess: false, data: null, messsage: "user already exist" });
+    }
+
+    // const userLoginIs = new userLogin({
+    //   userName: userName,
+    //   password: password
+    // });
+
+    // await userLoginIs.save();
+
+    const userIs = new userSchema({
+      name: name,
+      email: email,
+      mobileNo: mobileNo,
+      role: role,
+      password: password
+    });
+
+    await userIs.save();
+
+    let depositBonus = new userWallet({
+      userId: userIs._id,
+      type: "BONUS",
+      amount: process.env.SIGNUP_BONUS,
+      currency: "INR",
+      time: Date.now()
+    })
+
+    await depositBonus.save();
+
+    let user = {
+      name: name,
+      mobileNo: mobileNo
+    }
+
+    if (process.env.RAZORPAY != undefined && process.env.RAZORPAY != false) {
+
+      let customerIs = await instance.customers.create({
+        name: name,
+        email: email,
+        fail_existing: 0
+      })
+      // console.log(customerIs);
+
+      let virtualAccountIs = await instance.virtualAccounts.create({
+        receivers: {
+          types: [
+            "bank_account"
+          ]
+        },
+        customer_id: customerIs.id
+      })
+
+      let createUserAccount = await new userAccount({
+        userId: userIs._id,
+        vaId: virtualAccountIs.id,
+        custId: customerIs.id,
+        bank: {
+          name: virtualAccountIs.receivers[0].name,
+          ifsc: virtualAccountIs.receivers[0].ifsc,
+          bankName: virtualAccountIs.receivers[0].bank_name,
+          accountNumber: virtualAccountIs.receivers[0].account_number
+        }
+      });
+
+      await createUserAccount.save();
+
+    }
+    return res.status(200).json({
+      isSuccess: true, data: {
+        user: {
+          id: userIs._id, name: userIs.name, role: userIs.role, email: userIs.email, message: {
+            header: "Congratulations!",
+            body: "You got a signup bonus of Rs " + depositBonus.amount
+          }
+        }
+      }, message: "user successfully signed up"
+    });
+  } catch (error) {
+    return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
+  }
+})
 router.post('/storeData', async (req, res) => {
   const data = req.body;
 
@@ -279,6 +377,38 @@ router.post('/updateWallet', authenticateToken, async (req, res) => {
       id: storeDeposit._id
     }
     return res.status(200).json({ isSuccess: true, data: { userId: userId, transactionDetails: deposit }, messsage: "your trasaction stored" });
+  }
+  catch (error) {
+    return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
+  }
+})
+router.get('/getAccount', async (req, res) => {
+  try {
+    // const userId = req.query.userId;
+    const userId = req.user._id
+    let getTrans = await userAccount.aggregate([
+      {
+        $match: {
+          userId: mongoose.Types.ObjectId(userId)
+        }
+      },
+      {
+        $addFields: {
+          id: "$_id"
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          __v: 0
+        }
+      }
+    ]);
+
+    if (getTrans.length > 0) {
+      return res.status(200).json({ isSuccess: true, data: { userId: userId, userAccount: getTrans }, messsage: "account details found" });
+    }
+    return res.status(200).json({ isSuccess: false, data: null, messsage: "no any account details found" });
   }
   catch (error) {
     return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })

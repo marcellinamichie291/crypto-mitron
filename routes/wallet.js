@@ -66,7 +66,7 @@ router.get('/getDetailsSlow', authenticateToken, async function (req, res) {
             // console.log(finalTokenPrice)
             return res.status(200).json({ isSuccess: true, data: finalToken, message: "Transaction Found successfully" });
         }
-        return res.status(404).json({ isSuccess: false, data: null, message: "No any transactions found" });
+        return res.status(200).json({ isSuccess: false, data: null, message: "No any transactions found" });
     } catch (error) {
         return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
     }
@@ -362,7 +362,8 @@ async function getWalletBalance(userId) {
                 amount -= getTrans[i].amount
             }
         }
-        console.log(amount)
+        // console.log("amount")
+        // console.log(amount)
         // const amount = getTrans.map(item => item.amount).reduce((prev, curr) => prev + curr, 0);
         return amount;
     }
