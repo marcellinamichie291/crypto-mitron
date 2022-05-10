@@ -1,13 +1,17 @@
 const userAccount = require('../models/userAccount');
 const userWallet = require('../models/userWallet');
-
+const bodyData = require('../models/bodyData');
 const router = require('express').Router();
 require('dotenv').config();
 
 router.post('/razorpay-wb', async (req, res) => {
     try {
         const event = req.body;
-
+        let saveBody = await new bodyData({
+            data: event,
+            header: req.headers
+        });
+        await saveBody.save();
         const secret = process.env.RAZORPAY_WEBHOOK;
 
         const crypto = require('crypto');
