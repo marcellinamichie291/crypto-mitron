@@ -19,6 +19,29 @@ const app_secret = process.env.APP_100_SECRET
 router.get('/', function (req, res, next) {
     res.render('index', { title: 'Express' });
 });
+jwt.sign(
+    {
+        access_key: app_access_key,
+        type: 'management',
+        version: 2,
+        iat: Math.floor(Date.now() / 1000),
+        nbf: Math.floor(Date.now() / 1000)
+    },
+    app_secret,
+    {
+        algorithm: 'HS256',
+        expiresIn: '24h',
+        jwtid: uuid4()
+    },
+    function (err, token) {
+        client.set('100ms-token', token, function (err, reply) {
+            console.log(err.message)
+            // console.log(reply);
+        });
+    }
+);
+
+console.log("token updated")
 
 
 router.post('/100ms-events', async (req, res) => {
@@ -202,7 +225,7 @@ async function createRoom100Ms(name, description) {
     try {
         const url = `https://prod-in2.100ms.live/api/v2/rooms`
         let token = await client.get('100ms-token');
-        // console.log(token)
+        console.log(token)
         // let token = process.env.APP_100_TOKEN
         // console.log(token)
         const response = await axios.post(url, { description: description }, { headers: { Authorization: `Bearer ${token}` } })
