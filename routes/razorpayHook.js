@@ -7,11 +7,11 @@ require('dotenv').config();
 router.post('/razorpay-wb', async (req, res) => {
     try {
         const event = req.body;
-        let saveBody = await new bodyData({
-            data: event,
-            header: req.headers
-        });
-        await saveBody.save();
+        // let saveBody = await new bodyData({
+        //     data: event,
+        //     header: req.headers
+        // });
+        // await saveBody.save();
         const secret = process.env.RAZORPAY_WEBHOOK;
 
         const crypto = require('crypto');
@@ -21,7 +21,7 @@ router.post('/razorpay-wb', async (req, res) => {
         const digest = shasum.digest('hex');
 
         if (digest == req.headers['x-razorpay-signature']) {
-            // console.log("valid");
+            console.log("valid");
             // console.log(req.body);
             // console.log(event.payload.payment.entity.id);
             // console.log(event.payload.payment.entity.amount);
@@ -52,7 +52,7 @@ router.post('/razorpay-wb', async (req, res) => {
         }
         else {
             console.log("invalid");
-            console.log(event);
+            // console.log(event);
         }
 
         // console.log(event)
