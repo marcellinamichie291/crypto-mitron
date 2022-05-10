@@ -400,7 +400,8 @@ router.get('/getAccount', authenticateToken, async (req, res) => {
       {
         $project: {
           _id: 0,
-          __v: 0
+          __v: 0,
+          userId: 0
         }
       }
     ]);
