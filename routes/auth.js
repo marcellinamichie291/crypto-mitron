@@ -97,8 +97,10 @@ router.post('/signUpWithGoogle', async (req, res, next) => {
 
                     let customerIs = await instance.customers.create({
                         name: name,
-                        email: email,
-                        fail_existing: 0
+                        fail_existing: 0,
+                        notes: {
+                            userId: userIs._id
+                        }
                     })
                     // console.log(customerIs);
 

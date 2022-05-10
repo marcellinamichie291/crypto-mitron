@@ -85,6 +85,10 @@ router.post('/signUp', async (req, res, next) => {
   try {
     const { name, email, password, mobileNo, role } = req.body;
 
+    // let customerIs = await instance.customers.fetch("cust_JTYPnUKVXipDOS");
+    // console.log(customerIs);
+    // return;
+
     let checkExist = await userSchema.aggregate([
       {
         $match: {
@@ -136,8 +140,10 @@ router.post('/signUp', async (req, res, next) => {
 
       let customerIs = await instance.customers.create({
         name: name,
-        email: email,
-        fail_existing: 0
+        fail_existing: 0,
+        notes: {
+          userId: userIs._id
+        }
       })
       // console.log(customerIs);
 
