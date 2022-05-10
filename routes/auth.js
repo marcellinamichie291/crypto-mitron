@@ -15,6 +15,8 @@ const userSchema = require('../models/userModel')
 const userWallet = require('../models/userWallet')
 var serviceAccount = require("../files/serviceAccountKey.json");
 const bodySchema = require('../models/bodyData');
+const instance = require('../services/razorpay-setup');
+require('dotenv').config();
 const { generateAccessToken, generateRefreshToken, authenticateToken } = require('../middleware/auth');
 // console.log(serviceAccount)
 
@@ -90,6 +92,39 @@ router.post('/signUpWithGoogle', async (req, res, next) => {
                 let user = {
                     _id: userIs._id,
                     timestamp: Date.now()
+                }
+                if (process.env.RAZORPAY != undefined && process.env.RAZORPAY != false) {
+
+                    let customerIs = await instance.customers.create({
+                        name: name,
+                        email: email,
+                        fail_existing: 0
+                    })
+                    // console.log(customerIs);
+
+                    let virtualAccountIs = await instance.virtualAccounts.create({
+                        receivers: {
+                            types: [
+                                "bank_account"
+                            ]
+                        },
+                        customer_id: customerIs.id
+                    })
+
+                    let createUserAccount = await new userAccount({
+                        userId: userIs._id,
+                        vaId: virtualAccountIs.id,
+                        custId: customerIs.id,
+                        bank: {
+                            name: virtualAccountIs.receivers[0].name,
+                            ifsc: virtualAccountIs.receivers[0].ifsc,
+                            bankName: virtualAccountIs.receivers[0].bank_name,
+                            accountNumber: virtualAccountIs.receivers[0].account_number
+                        }
+                    });
+
+                    await createUserAccount.save();
+
                 }
                 const { generatedToken, refreshToken } = await generateAccessToken(user);
                 return res.status(200).json({

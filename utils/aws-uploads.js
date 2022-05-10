@@ -27,6 +27,19 @@ const uploadJson = (json) => {
         return "Error"
     }
 }
+const getFiles = () => {
+    const s3 = new aws.S3();
+    var params = {
+        Bucket: 'bitron-data',
+        Delimiter: "/",
+        Prefix: 'backUp/'
+    }
+
+    s3.listObjects(params, function (err, data) {
+        if (err) throw err;
+        console.log(data);
+    });
+}
 const uploadBackUp = async (fileName) => {
     try {
 
@@ -58,5 +71,6 @@ const uploadBackUp = async (fileName) => {
 
 module.exports = {
     uploadJson: uploadJson,
-    uploadBackUp: uploadBackUp
+    uploadBackUp: uploadBackUp,
+    getFiles: getFiles
 }

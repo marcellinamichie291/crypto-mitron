@@ -17,6 +17,7 @@ const symbolRoute = require('./routes/symbol');
 const passport = require('passport');
 var session = require('express-session')
 const payment = require('./routes/payments');
+const razorpay = require('./routes/razorpayHook');
 var userProfile;
 require('./config');
 // require('./routes/binanceSocket')
@@ -46,6 +47,7 @@ app.use('/wallet', walletRoute);
 app.use('/tokens', tokenRouter);
 app.use('/symbol', symbolRoute)
 app.use('/payment', payment)
+app.use('/rz', razorpay)
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));

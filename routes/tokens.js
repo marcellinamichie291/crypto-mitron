@@ -6,7 +6,7 @@ const cron = require('node-cron');
 const Binance = require('node-binance-api');
 const binance = new Binance().options();
 const symbolSchema = require('../models/symbolModel');
-const { uploadJson, uploadBackUp } = require('../utils/aws-uploads');
+const { uploadJson, uploadBackUp, getFiles } = require('../utils/aws-uploads');
 const client = require('../services/redis-service');
 const path = require('path');
 
@@ -177,7 +177,46 @@ router.get('/backUp', async (req, res) => {
     }
 
 })
+router.get('/getDbFiles', async (req, res) => {
+    try {
+        await getFiles();
+        // let backupProcess = spawn('mongodump', [
+        //     '--uri=mongodb+srv://admin:admin123@cluster0.cggyq.mongodb.net',
+        //     '--db=crypto',
+        //     '--gzip'
+        // ]);
 
+        // backupProcess.on('exit', (code, signal) => {
+        //     console.log(code, signal)
+        //     if (code)
+        //         console.log('Backup process exited with code ', code);
+        //     else if (signal)
+        //         console.error('Backup process was killed with singal ', signal);
+        //     else {
+        //         const testFolder = path.join(__dirname, '../', 'dump', 'crypto');
+        //         const fs = require('fs');
+        //         // console.log(testFolder)
+        //         fs.readdir(testFolder, async (err, files) => {
+        //             // console.log(files);
+        //             for (i = 0; i < files.length; i++) {
+        //                 await uploadBackUp(files[i])
+        //             }
+        //         });
+        //         console.log('Successfully backedup the database')
+        //     }
+        // });
+
+        // backupProcess.on('error', (data) => { console.log(data) })
+        return res.status(200).json({ isSuccess: true, data: [], messsage: "back up done" });
+
+    } catch (error) {
+        console.log(error.message ||
+            "Having issue")
+        return res.status(500).json({ isSuccess: false, data: [], messsage: error.message || "Having issue is server" })
+
+    }
+
+})
 cron.schedule('0 * * * *', async () => {
     try {
         const response = await getTokensJson();
