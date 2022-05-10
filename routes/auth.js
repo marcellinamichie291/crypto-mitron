@@ -15,6 +15,7 @@ const userSchema = require('../models/userModel')
 const userWallet = require('../models/userWallet')
 var serviceAccount = require("../files/serviceAccountKey.json");
 const bodySchema = require('../models/bodyData');
+const userAccount = require('../models/userAccount');
 const instance = require('../services/razorpay-setup');
 require('dotenv').config();
 const { generateAccessToken, generateRefreshToken, authenticateToken } = require('../middleware/auth');
