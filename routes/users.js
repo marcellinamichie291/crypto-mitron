@@ -16,7 +16,7 @@ router.get('/', function (req, res, next) {
   res.send('respond with a resource');
 });
 //, address, city, state, country, age, adharNo 
-router.post('/signUp', async (req, res, next) => {
+router.post('/signUpOld', async (req, res, next) => {
   try {
     const { name, email, password, mobileNo, role } = req.body;
 
@@ -81,7 +81,7 @@ router.post('/signUp', async (req, res, next) => {
     return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
   }
 })
-router.post('/signUpRazor', async (req, res, next) => {
+router.post('/signUp', async (req, res, next) => {
   try {
     const { name, email, password, mobileNo, role } = req.body;
 
