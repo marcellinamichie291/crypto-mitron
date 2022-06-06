@@ -2,13 +2,13 @@ var express = require('express');
 var router = express.Router();
 const userSchema = require('../models/userModel');
 const userKyc = require('../models/userKyc');
-const { generateAccessToken, generateRefreshToken, authenticateToken } = require('../middleware/auth');
+const { generateAccessToken, generateRefreshToken, authenticateToken, generateAccessTokenHost } = require('../middleware/auth');
 const { default: mongoose } = require('mongoose');
 const userWallet = require('../models/userWallet');
 const instance = require('../services/razorpay-setup');
 const bodySchema = require('../models/bodyData');
 const userAccount = require('../models/userAccount');
-
+const roomSchema = require('../models/roomModel');
 
 
 /* GET users listing. */
@@ -416,6 +416,59 @@ router.get('/getAccount', authenticateToken, async (req, res) => {
       return res.status(200).json({ isSuccess: true, data: { userId: userId, userAccount: getTrans }, messsage: "account details found" });
     }
     return res.status(200).json({ isSuccess: false, data: null, messsage: "no any account details found" });
+  }
+  catch (error) {
+    return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
+  }
+})
+router.get('/checkUserRole', async (req, res) => {
+  try {
+    const userId = req.query.userId;
+    console.log(userId)
+    let getTrans = await userSchema.aggregate([
+      {
+        $match: {
+          _id: mongoose.Types.ObjectId(userId)
+        }
+      }
+    ]);
+    // console.log(getTrans.length)
+    if (getTrans.length > 0) {
+      let user = {
+        _id: getTrans[0]._id,
+        timestamp: Date.now()
+      }
+
+      const { generatedToken, refreshToken } = await generateAccessTokenHost(user);
+
+      return res.status(200).json({ isSuccess: true, data: { userId: userId, name: getTrans[0].name, role: getTrans[0].role, token: generatedToken }, messsage: "user role found" });
+    }
+    return res.status(200).json({ isSuccess: false, data: null, messsage: "no any user found" });
+  }
+  catch (error) {
+    return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
+  }
+})
+router.get('/checkRoomExist', async (req, res) => {
+  try {
+    const { roomId, userId } = req.query;
+    // console.log(userId)
+    let getTrans = await roomSchema.aggregate([
+      {
+        $match: {
+          $and: [
+            { _id: mongoose.Types.ObjectId(roomId) },
+            { userId: mongoose.Types.ObjectId(userId) }
+          ]
+        }
+      }
+    ]);
+    // console.log(getTrans.length)
+    if (getTrans.length > 0) {
+
+      return res.status(200).json({ isSuccess: true, data: true, messsage: "room exist" });
+    }
+    return res.status(200).json({ isSuccess: true, data: false, messsage: "no any room found" });
   }
   catch (error) {
     return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })

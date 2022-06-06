@@ -3,6 +3,7 @@ var express = require('express');
 var cors = require('cors');
 var path = require('path');
 var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parser');
 var logger = require('morgan');
 var bodyParser = require('body-parser');
 var indexRouter = require('./routes/index');
@@ -14,6 +15,7 @@ const tokenRouter = require('./routes/tokens')
 const responseTime = require('./response-time');
 const authRoute = require('./routes/auth');
 const symbolRoute = require('./routes/symbol');
+const youtubeRoute = require('./routes/youtube');
 const passport = require('passport');
 var session = require('express-session')
 const payment = require('./routes/payments');
@@ -36,6 +38,8 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(bodyParser.json({ limit: '50mb' }));
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(responseTime);
 app.use('/', indexRouter);
@@ -48,6 +52,7 @@ app.use('/tokens', tokenRouter);
 app.use('/symbol', symbolRoute)
 app.use('/payment', payment)
 app.use('/rz', razorpay)
+app.use('/youtube', youtubeRoute)
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));

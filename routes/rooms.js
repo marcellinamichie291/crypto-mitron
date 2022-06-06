@@ -3,7 +3,7 @@ var router = express.Router();
 const axios = require('axios')
 const roomSchema = require('../models/roomModel');
 const getCurrentDateTime = require('../utils/timeFunctions');
-const { authenticateToken, checkRole } = require('../middleware/auth');
+const { authenticateToken, authenticateTokenHost, checkRole } = require('../middleware/auth');
 const { default: mongoose } = require('mongoose');
 var jwt = require('jsonwebtoken');
 var uuid4 = require('uuid4');
@@ -185,6 +185,33 @@ router.post('/createRoom', authenticateToken, checkRole(["host"]), async (req, r
         return res.status(500).json({ isSuccess: false, data: null, message: err.message || "Having issue is server" })
     }
 })
+router.post('/createRoomHost', authenticateTokenHost, checkRole(["host"]), async (req, res) => {
+    try {
+        const { name, description } = req.body;
+        const response = await createRoom100Ms(name, description);
+        if (response.status == 0) {
+            console.log(response.data)
+            let roomIs = new roomSchema({
+                _id: response.data.id,
+                name: name,
+                description: description,
+                roomName: response.data.name,
+                userId: req.user._id,
+                createdTime: getCurrentDateTime()
+            });
+
+            await roomIs.save();
+            return res.status(200).json({ isSuccess: true, data: { userId: req.user._id, roomDetails: roomIs }, message: "New Room Created Successfully" });
+        }
+        else {
+            return res.status(400).json({ isSuccess: false, data: null, message: "cannot create room right now try after some time" });
+        }
+        // await roomIs.save();
+    }
+    catch (err) {
+        return res.status(500).json({ isSuccess: false, data: null, message: err.message || "Having issue is server" })
+    }
+})
 router.post('/getMyRooms', authenticateToken, checkRole(["host"]), async (req, res) => {
     try {
 
@@ -235,7 +262,7 @@ async function createRoom100Ms(name, description) {
         console.log(token)
         // let token = process.env.APP_100_TOKEN
         // console.log(token)
-        const response = await axios.post(url, { description: description }, { headers: { Authorization: `Bearer ${token}` } })
+        const response = await axios.post(url, { description: name }, { headers: { Authorization: `Bearer ${token}` } })
 
 
         if (response.status == 200) {

@@ -87,6 +87,45 @@ router.post('/token-generate-app', async (req, res) => {
     return res.status(500).json({ isSuccess: false, data: null, messsage: error.message || "Having issue is server" })
   }
 })
+router.post('/token-generate-app-token', authenticateToken, async (req, res) => {
+  try {
+    const { roomId } = req.body;
+    const userId = req.user._id;
+    checkUser = await userSchema.aggregate([
+      {
+        $match: {
+          _id: mongoose.Types.ObjectId(userId)
+        }
+      }
+    ]);
+    if (checkUser.length > 0) {
+      var payload = {
+        access_key: app_access_key,
+        room_id: roomId,
+        user_id: userId,
+        role: checkUser[0].role,
+        type: 'app',
+        version: 2,
+        iat: Math.floor(Date.now() / 1000),
+        nbf: Math.floor(Date.now() / 1000)
+      };
+      const token = jwt.sign(
+        payload,
+        app_secret,
+        {
+          algorithm: 'HS256',
+          expiresIn: '20d',
+          jwtid: uuid4()
+        }
+      );
+      return res.status(200).json({ isSuccess: true, data: token, messsage: "use found and token generated" });
+    }
+    return res.status(404).json({ isSuccess: false, data: null, messsage: "no user found" });
+  }
+  catch (error) {
+    return res.status(500).json({ isSuccess: false, data: null, messsage: error.message || "Having issue is server" })
+  }
+})
 router.post('/create', authenticateToken, async function (req, res) {
   try {
     const { debitToken, creditToken, debitAmount, transactionDate, status } = req.body;
