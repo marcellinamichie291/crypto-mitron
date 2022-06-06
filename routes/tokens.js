@@ -6,11 +6,26 @@ const cron = require('node-cron');
 const Binance = require('node-binance-api');
 const binance = new Binance().options();
 const symbolSchema = require('../models/symbolModel');
-const { uploadJson, uploadBackUp, getFiles } = require('../utils/aws-uploads');
+const { uploadJson, uploadBackUp, uploadAppCast, getFiles } = require('../utils/aws-uploads');
 const client = require('../services/redis-service');
 const path = require('path');
-
+const multer = require('multer')
 require("dotenv").config();
+
+let userPhotosDisk = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, "uploads/");
+    },
+    filename: function (req, file, cb) {
+        cb(
+            null,
+            "appcast" + path.extname(file.originalname)
+        );
+    },
+});
+let userProfilePhoto = multer({ storage: userPhotosDisk });
+
+
 /* GET home page. */
 router.get('/', function (req, res, next) {
     res.render('index', { title: 'Express' });
@@ -137,7 +152,24 @@ router.get('/getTokens', async (req, res) => {
 //for upload all token data to s3 every 10 second
 //for 10 minute==*/10 * * * *
 const spawn = require('child_process').spawn;
+router.post('/upload/appcast', userProfilePhoto.single('file'), async (req, res) => {
+    try {
+        const upload = await uploadAppCast(req.file.path)
+        if (upload.Location != undefined) {
+            return res.status(200).json({ isSuccess: true, data: upload.Location, messsage: "update of appcast done" });
+        }
+        else {
+            return res.status(200).json({ isSuccess: true, data: null, messsage: "can not update appcast" });
+        }
 
+    } catch (error) {
+        console.log(error.message ||
+            "Having issue")
+        return res.status(500).json({ isSuccess: false, data: [], messsage: error.message || "Having issue is server" })
+
+    }
+
+})
 router.get('/backUp', async (req, res) => {
     try {
         let backupProcess = spawn('mongodump', [

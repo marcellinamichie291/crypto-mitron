@@ -2,3 +2,5 @@ node_modules
 data.txt
 .env
 dump
+service.txt
+kite.html
