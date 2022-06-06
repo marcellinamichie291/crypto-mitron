@@ -117,6 +117,45 @@ router.post('/addChannel', authenticateToken, async (req, res, next) => {
     }
 })
 
+router.post('/getVideoFromChannelId', authenticateToken, async (req, res, next) => {
+    try {
+        const { channelId } = req.body;
+        const userId = req.user._id;
+
+
+        let checkExistChannel = await channelModel.aggregate([
+            {
+                $match: {
+                    _id: mongoose.Types.ObjectId(channelId)
+                }
+            }
+        ]);
+
+        if (checkExistChannel.length == 0) {
+            return res.status(200).json({
+                isSuccess: true, data: null, message: "no any channel found"
+            });
+        }
+
+
+        let getVideoInfo = await getVideos(checkExistChannel[0].channelId);
+        console.log(getVideoInfo);
+        if (getVideoInfo.data.items.length == 0) {
+            return res.status(200).json({
+                isSuccess: true, data: null, message: "no any live video found"
+            });
+        }
+        else {
+            return res.status(200).json({
+                isSuccess: true, data: getVideoInfo.data.items, message: "Video information found"
+            });
+        }
+
+    } catch (error) {
+        return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
+    }
+})
+
 router.get('/getChannel', authenticateToken, async (req, res, next) => {
     try {
         const userId = req.user._id;
