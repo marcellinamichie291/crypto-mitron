@@ -151,7 +151,7 @@ router.post('/getVideoFromChannelId', authenticateToken, async (req, res, next) 
 
 
         let getVideoInfo = await getVideos(checkExistChannel[0].channelId);
-        console.log(getVideoInfo);
+        // console.log(getVideoInfo);
         if (getVideoInfo.data.items.length == 0) {
             return res.status(200).json({
                 isSuccess: true, data: null, message: "no any live video found"
@@ -194,21 +194,9 @@ router.get('/getChannel', authenticateToken, async (req, res, next) => {
             }
         ]);
 
-        let getChannels = await channelModel.aggregate([
-            {
-                $match: {
-                    isSuggest: true
-                }
-            }
-        ]);
-        if (getChannelData.length == 0) {
-            return res.status(200).json({
-                isSuccess: true, data: getChannels, message: "no users channels found"
-            });
-        }
 
         return res.status(200).json({
-            isSuccess: true, data: [...getChannelData, ...getChannels], message: "channels information found"
+            isSuccess: true, data: getChannelData, message: "channels information found"
         });
 
 
