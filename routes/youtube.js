@@ -205,7 +205,7 @@ router.get('/getChannel', authenticateToken, async (req, res, next) => {
     }
 })
 
-router.get('/getVideoInfo', authenticateToken, async (req, res, next) => {
+router.get('/getVideoInfo', async (req, res, next) => {
     try {
         // const userId = req.user._id;
         const { videoId } = req.query;
