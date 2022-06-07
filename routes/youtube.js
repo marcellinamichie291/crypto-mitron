@@ -53,6 +53,12 @@ router.post('/addChannel', authenticateToken, async (req, res, next) => {
                 if (channelId.length == 0) {
                     channelId = getChannelDataIs.data.items[0].id;
                 }
+
+                if (channelId.length == 0) {
+                    return res.status(200).json({
+                        isSuccess: true, data: null, message: "can not find channel data from youtube"
+                    });
+                }
                 let addChannel = new channelModel({
                     channelName: channelName,
                     channelId: channelId,
