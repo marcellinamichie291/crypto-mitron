@@ -20,7 +20,7 @@ router.post('/addChannel', authenticateToken, async (req, res, next) => {
         }
 
         // let pattern = /^(https?\:\/\/)?(www\.youtube\.com|youtu\.be)\/c\/.+$/;
-        let pattern = /^(https ?\: \/\/)?(www\.youtube\.com|youtu\.be)\/+[a-zA-Z0-9+_.-]+\/.+$/;
+        let pattern = /^(https?\:\/\/)?(www\.youtube\.com|youtu\.be)\/+[a-zA-Z0-9+_.-]+\/.+$/;
         let result = pattern.test(url);
 
         if (!result) {
@@ -39,14 +39,19 @@ router.post('/addChannel', authenticateToken, async (req, res, next) => {
         console.log(checkExistChannel.length)
         if (checkExistChannel.length == 0) {
             let getChannelDataIs = await getChannelData(channelName);
-            console.log(getChannelDataIs)
+            // console.log(getChannelDataIs)
             if (getChannelDataIs.status == 0) {
                 let channelId = "";
                 console.log(getChannelDataIs.data.items.length);
                 for (i = 0; i < getChannelDataIs.data.items.length; i++) {
+                    // console.log(getChannelDataIs.data.items[i].snippet);
                     if (channelName == getChannelDataIs.data.items[i].snippet.customUrl) {
                         channelId = getChannelDataIs.data.items[i].id
                     }
+                }
+
+                if (channelId.length == 0) {
+                    channelId = getChannelDataIs.data.items[0].id;
                 }
                 let addChannel = new channelModel({
                     channelName: channelName,
