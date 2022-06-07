@@ -19,7 +19,8 @@ router.post('/addChannel', authenticateToken, async (req, res, next) => {
 
         }
 
-        let pattern = /^(https?\:\/\/)?(www\.youtube\.com|youtu\.be)\/c\/.+$/;
+        // let pattern = /^(https?\:\/\/)?(www\.youtube\.com|youtu\.be)\/c\/.+$/;
+        let pattern = /^(https ?\: \/\/)?(www\.youtube\.com|youtu\.be)\/+[a-zA-Z0-9+_.-]+\/.+$/;
         let result = pattern.test(url);
 
         if (!result) {
