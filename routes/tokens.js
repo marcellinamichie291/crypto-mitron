@@ -135,7 +135,7 @@ router.get('/getTokens', async (req, res) => {
         if (response.status == 0) {
             const resp = response.resp;
             var buf = Buffer.from(JSON.stringify(resp));
-            const responseIs = await uploadJson(buf)
+            const responseIs = await uploadJson(buf, 'token-details/tokens.json')
             // console.log(responseIs)
             return res.status(200).json({ isSuccess: true, data: resp, messsage: "top loosers by 24 hour change" });
         }
@@ -255,7 +255,7 @@ cron.schedule('0 * * * *', async () => {
         if (response.status == 0) {
             const resp = response.resp;
             var buf = Buffer.from(JSON.stringify(resp));
-            const responseIs = await uploadJson(buf)
+            const responseIs = await uploadJson(buf, 'token-details/tokens.json')
             console.log("uploaded")
             // console.log(responseIs)
             // return res.status(200).json({ IsSuccess: true, Data: resp, Messsage: "top loosers by 24 hour change" });

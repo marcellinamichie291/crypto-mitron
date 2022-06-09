@@ -3,12 +3,12 @@ const fs = require('fs');
 const path = require('path')
 const multerS3 = require('multer-s3');
 const multer = require('multer')
-const uploadJson = (json) => {
+const uploadJson = (json, key) => {
     try {
         const s3 = new aws.S3();
         var data = {
             Bucket: 'bitron-data',
-            Key: 'token-details/tokens.json',
+            Key: key,
             Body: json,
             ContentEncoding: 'base64',
             ContentType: 'application/json',
