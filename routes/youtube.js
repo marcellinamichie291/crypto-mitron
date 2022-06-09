@@ -6,6 +6,8 @@ const channelModel = require('../models/channelModel');
 const { authenticateToken } = require('../middleware/auth');
 const channelUsers = require('../models/channelUsers');
 const { default: mongoose } = require('mongoose');
+const cron = require('node-cron');
+const { uploadJson } = require('../utils/aws-uploads')
 //authenticateToken
 router.post('/addChannel', authenticateToken, async (req, res, next) => {
     try {
@@ -234,6 +236,46 @@ router.get('/getVideoInfo', async (req, res, next) => {
         return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
     }
 })
+router.get('/getVideoJsonUpdate', async (req, res, next) => {
+    try {
+
+        const getResponse = await getTradingLive();
+
+        if (getResponse.status == 0 && getResponse.data.items.length > 0) {
+            let allVideos = [];
+            let allData = getResponse.data.items;
+            for (i = 0; i < allData.length; i++) {
+                let obj = {
+                    "video_id": allData[i].id.videoId,
+                    "channel_name": allData[i].snippet.channelTitle,
+                    "video_title": allData[i].snippet.title,
+                    "channel_title": allData[i].snippet.channelTitle,
+                    "type": allData[i].snippet.liveBroadcastContent,
+                    "thumbnails": allData[i].snippet.thumbnails
+                };
+                allVideos.push(obj);
+            }
+            let uploadDataIs = {
+                "yt_videos": allVideos
+            }
+            var buf = Buffer.from(JSON.stringify(uploadDataIs));
+            const responseIs = await uploadJson(buf, 'token-details/yt.json')
+            console.log("api responsed and json update")
+            // return res.status(200).json({ isSuccess: false, data: allVideos, message: "video found" })
+
+        }
+        else {
+            console.log("no youtube api respond")
+            // return res.status(200).json({ isSuccess: false, data: null, message: "having issue in youtube load data" })
+
+        }
+
+
+    } catch (error) {
+        console.log(error.message);
+        // return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
+    }
+})
 
 async function getChannelData(channelName) {
     try {
@@ -287,5 +329,62 @@ async function getFullVideoInfo(videoId) {
         return { status: 2, data: err.message };
     }
 }
+async function getTradingLive() {
+    try {
+        const videosUrl = `https://youtube.googleapis.com/youtube/v3/search?part=snippet&eventType=live&maxResults=25&q=trading%20live&type=video&key=${process.env.YOUTUBE_KEY}`
+        // console.log(url)
+        const response = await axios.get(videosUrl)
+        // console.log(response)
+        if (response.status == 200) {
+            return { status: 0, data: response.data };
+        }
+        else {
+            return { status: 1 };;
+        }
+    }
+    catch (err) {
+        return { status: 2, data: err.message };
+    }
+}
 
+cron.schedule('*/5 * * * *', async () => {
+    try {
+
+        const getResponse = await getTradingLive();
+
+        if (getResponse.status == 0 && getResponse.data.items.length > 0) {
+            let allVideos = [];
+            let allData = getResponse.data.items;
+            for (i = 0; i < allData.length; i++) {
+                let obj = {
+                    "video_id": allData[i].id.videoId,
+                    "channel_name": allData[i].snippet.channelTitle,
+                    "video_title": allData[i].snippet.title,
+                    "channel_title": allData[i].snippet.channelTitle,
+                    "type": allData[i].snippet.liveBroadcastContent,
+                    "thumbnails": allData[i].snippet.thumbnails
+                };
+                allVideos.push(obj);
+            }
+            let uploadDataIs = {
+                "yt_videos": allVideos
+            }
+            var buf = Buffer.from(JSON.stringify(uploadDataIs));
+            const responseIs = await uploadJson(buf, 'token-details/yt.json')
+            console.log("api responsed and json update")
+            // return res.status(200).json({ isSuccess: false, data: allVideos, message: "video found" })
+
+        }
+        else {
+            console.log("no youtube api respond")
+            // return res.status(200).json({ isSuccess: false, data: null, message: "having issue in youtube load data" })
+
+        }
+
+
+    } catch (error) {
+        console.log(error.message);
+        // return res.status(500).json({ isSuccess: false, data: null, message: error.message || "Having issue is server" })
+    }
+});
 module.exports = router;
