@@ -331,7 +331,7 @@ async function getFullVideoInfo(videoId) {
 }
 async function getTradingLive() {
     try {
-        const videosUrl = `https://youtube.googleapis.com/youtube/v3/search?part=snippet&eventType=live&maxResults=25&q=trading%20live&type=video&key=${process.env.YOUTUBE_KEY}`
+        const videosUrl = `https://youtube.googleapis.com/youtube/v3/search?part=snippet&eventType=live&maxResults=25&q=trading%20live&type=video&regionCode=IN&key=${process.env.YOUTUBE_KEY}`
         // console.log(url)
         const response = await axios.get(videosUrl)
         // console.log(response)
