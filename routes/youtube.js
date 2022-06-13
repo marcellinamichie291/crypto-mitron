@@ -261,12 +261,12 @@ router.get('/getVideoJsonUpdate', async (req, res, next) => {
             var buf = Buffer.from(JSON.stringify(uploadDataIs));
             const responseIs = await uploadJson(buf, 'token-details/yt.json')
             console.log("api responsed and json update")
-            // return res.status(200).json({ isSuccess: false, data: allVideos, message: "video found" })
+            return res.status(200).json({ isSuccess: false, data: allVideos, message: "video found" })
 
         }
         else {
-            console.log("no youtube api respond")
-            // return res.status(200).json({ isSuccess: false, data: null, message: "having issue in youtube load data" })
+            console.log("no youtube api respond ")
+            return res.status(200).json({ isSuccess: false, data: null, message: "having issue in youtube load data" })
 
         }
 
@@ -343,11 +343,12 @@ async function getTradingLive() {
         }
     }
     catch (err) {
+        console.log(err.message)
         return { status: 2, data: err.message };
     }
 }
 
-cron.schedule('*/5 * * * *', async () => {
+cron.schedule('*/15 * * * *', async () => {
     try {
 
         const getResponse = await getTradingLive();
